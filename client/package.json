@@ -4,44 +4,13 @@
   "author": "Xinquan XU",
   "license": "MIT",
   "version": "1.0.0",
-  "publisher": "vscode",
+  "publisher": "Xinquan XU",
   "repository": {
     "type": "git",
     "url": ""
   },
   "engines": {
     "vscode": "^1.63.0"
-  },
-  "categories": [
-    "Programming Languages"
-  ],
-  "activationEvents": [
-    "onLanguage:tricore",
-    "workspaceContains:**/*.{s,S,asm,ASM}"
-  ],
-  "contributes": {
-    "languages": [
-      {
-        "id": "Tricore Assembly",
-        "aliases": [
-          "Tricore Assembly",
-          "Tricore Assembly"
-        ],
-        "extensions": [
-          ".s",
-          ".S",
-          ".asm"
-        ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "Tricore Assembly",
-        "scopeName": "source.tricore",
-        "path": "./syntaxes/Tricore Assembly.tmLanguage.json"
-      }
-    ]
   },
   "scripts": {
     "test": "jest"

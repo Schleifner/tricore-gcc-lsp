@@ -1,24 +1,49 @@
 {
 	"name": "tricore-lsp",
-	"description": "Tricore language server",
-	"author": "Xinquan XU",
-	"license": "MIT",
-	"version": "1.0.0",
-	"repository": {
-		"type": "git",
-		"url": ""
-	},
-	"publisher": "",
-	"categories": [],
-	"keywords": [
-		""
-	],
-	"engines": {
-		"vscode": "^1.63.0"
-	},
-	"main": "./client/out/extension",
-	"contributes": {
-	},
+  "description": "Tricore language server",
+  "author": "Xinquan XU",
+  "license": "MIT",
+  "version": "1.0.0",
+  "publisher": "Xinquan XU",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "vscode": "^1.63.0"
+  },
+	"categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:tricore",
+    "workspaceContains:**/*.{s,S,asm,ASM}"
+  ],
+  "main": "./client/out/extension",
+  "contributes": {
+    "languages": [
+      {
+        "id": "Tricore Assembly",
+        "aliases": [
+          "Tricore Assembly",
+          "Tricore Assembly"
+        ],
+        "extensions": [
+          ".s",
+          ".S",
+          ".asm"
+        ],
+        "configuration": "./client/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "Tricore Assembly",
+        "scopeName": "source.tricore",
+        "path": "./client/syntaxes/Tricore Assembly.tmLanguage.json"
+      }
+    ]
+  },
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -b",
