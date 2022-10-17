@@ -48,6 +48,89 @@ export default class Parser {
     return { regsuffix: "d", offset: 0 };
   }
 
+  private classify_numeric(num: number): string {
+    if (num < 0) {
+      if (num >= -8) {
+        return "4";
+      }
+      if (num >= -16) {
+        return "F";
+      }
+      if ((num >= -32) && !(num & 1)) {
+        return "r";
+      }
+      if (num >= -256) {
+        return (num & 1) ? "9" : "R";
+      }
+      if (num >= -512) {
+        return "0";
+      }
+      if (num >= -32768) {
+        return (num & 1) ? "w" : "o";
+      }
+      if ((num >= -16777216) && !(num & 1)) {
+        return 'O';
+      }
+    } else {
+      if (num < 2) {
+        return "1";
+      }
+      if (num < 4) {
+        return "2";
+      }
+      if (num < 8) {
+        return "3";
+      }
+      if (num < 16) {
+        return "f";
+      }
+      if (num < 31) {
+        return (num & 1) ? "5" : "v";
+      }
+      if (num < 32) {
+        return "5";
+      }
+      if ((num < 61) && !(num & 3)) {
+        return "6";
+      }
+      if ((num < 63) && !(num & 1)) {
+        return 'x';
+      }
+      if (num < 256) {
+        return "8";
+      }
+      if (num < 512) {
+        return "n";
+      }
+      if ((num < 1024) && !(num & 3)) {
+        return "k";
+      }
+      if (num < 1024) {
+        return "h";
+      }
+      if (num < 32768) {
+        return "q";
+      }
+      if (num < 65536) {
+        return "W";
+      }
+      if ((num < 16777215) && !(num & 1)) {
+        return "O";
+      }
+    }
+
+    if (!(num & 0x0fffc000)) {
+      return "t";
+    } else if (!(num & 0x0fe00001)) {
+      return "T";
+    }
+    if (!(num & 0x00003fff)) {
+      return "V";
+    }
+
+    return "M";
+  }
+
   private get_expression(the_insn: tricore_insn_t, src: string, str: string, opnr: number) {
     let bitposFlag = false, prefix: prefix_t = prefix_t.PREFIX_NONE;
     let colonIndex = str.indexOf(":");
@@ -60,7 +143,7 @@ export default class Parser {
             bitposFlag = true;
           } else {
             prefix = pfx.pcod;
-            if (pfx.pcod === prefix_t.PREFIX_SBREG) {
+            if (pfx.pcod !== prefix_t.PREFIX_SBREG) {
               the_insn.needs_prefix = opnr;
             }
           }
@@ -98,14 +181,68 @@ export default class Parser {
       }
     }
 
-    let numeric = 0;
-    if (str.match(/^[+-]?[\d]+([\.][\d]+)?([Ee][+-]?[\d]+)?$/)) {
+    let numeric: number | undefined;
+    if (str.match(/^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/)
+      || str.match(/^0[Bb][01]+$/)
+      || str.match(/^0[Xx][0-9a-fA-F]+$/)) {
       numeric = Number(str);
       if (!numeric) {
         // TO FIX: use as_bad() to print error rather than the_insn.error; 
-        the_insn.error = "bad scientific expressions constant";
+        the_insn.error = "bad numeric constant";
       }
+    } else if (str.match(/^[a-zA-Z_][0-9a-zA-Z_]*$/)) {
+      console.log(str);
+      the_insn.label.push(str);
+    } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
+      the_insn.label.push(str.slice(0, -1));
+    } else {
+      // more complex expression, TO DO
     }
+
+    if (numeric || numeric == 0) {
+      switch (prefix) {
+        case prefix_t.PREFIX_NONE:
+        case prefix_t.PREFIX_HI:
+        case prefix_t.PREFIX_LO:
+        case prefix_t.PREFIX_UP:
+          break;
+        default:
+          the_insn.error = "Illegal prefix for constant expression";
+          return 0;
+      }
+      if (bitposFlag && (numeric < 0 || numeric > 7)) {
+        the_insn.error = "Illegal constant bit position";
+        return 0;
+      }
+      the_insn.ops[opnr] = this.classify_numeric(numeric);
+      if (prefix != prefix_t.PREFIX_NONE) {
+        the_insn.ops[opnr] = "q"; /* Matches both "w" and "W"! */
+      } else if (the_insn.ops[opnr] === "k") {
+        the_insn.matches_k[opnr] = 1;
+      } else if (the_insn.ops[opnr] === "6") {
+        the_insn.matches_6[opnr] = 1;
+        the_insn.matches_k[opnr] = 1;
+      } else if ("123fmxv".indexOf(the_insn.ops[opnr]) >= 0) {
+        if (!(numeric & 1)) {
+          the_insn.matches_v[opnr] = 1;
+        }
+        if (!(numeric & 3)) {
+          the_insn.matches_6[opnr] = 1;
+          the_insn.matches_k[opnr] = 1;
+        }
+      } else if ("58n".indexOf(the_insn.ops[opnr]) >= 0) {
+        if (!(numeric & 3)) {
+          the_insn.matches_k[opnr] = 1;
+        }
+      }
+    } else {
+      the_insn.ops[opnr] = "U";
+      the_insn.matches_v[opnr] = 1;
+      the_insn.matches_6[opnr] = 1;
+      the_insn.matches_k[opnr] = 1;
+    }
+
+    return true;
   }
 
   tricore_ip(str: string, the_insn: tricore_insn_t) {
@@ -226,7 +363,10 @@ export default class Parser {
                 : "@";
             }
             if (++dstIndex < dst.length) {
-              //TODO getExpression or goto restart_scan;
+              if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
+                return;
+              }
+              break;
             } else {
               break;
             }
@@ -242,7 +382,10 @@ export default class Parser {
             if (dst[dstIndex] === "]") {
               the_insn.ops[numops] = ">";
               if (++dstIndex < dst.length) {
-                //TODO getExpression or goto restart_scan;
+                if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
+                  return;
+                }
+                break;
               } else {
                 break;
               }
@@ -260,7 +403,10 @@ export default class Parser {
               if (mode === "c") {
                 the_insn.ops[numops] = "*";
                 if (++dstIndex < dst.length) {
-                  //TODO getExpression or goto restart_scan;
+                  if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
+                    return;
+                  }
+                  break;
                 }
               } else {
                 the_insn.ops[numops] = (mode === "r") ? "#" : "?";
@@ -279,9 +425,9 @@ export default class Parser {
             return;
           }
         default:
-          // if (!this.get_expression()) {
-          //   return;
-          // }
+          if (!this.get_expression(the_insn, str, dst, numops)) {
+            return;
+          }
           break;
       }
       tokenIndex ++;
@@ -308,5 +454,13 @@ const insn: tricore_insn_t = {
   matches_k: [],
   needs_prefix: 0
 }
-ps.tricore_ip("movh %d15,hi:.LC0", insn);
+// ps.tricore_ip("movh %d15,hi:.LC0", insn);
+// ps.tricore_ip("st.w [%a14]-4,%d15", insn);
+// ps.tricore_ip("ld.w %d15,[%sp]4", insn);
+
+// ps.tricore_ip("movh %d15,16457", insn);             // iq
+// ps.tricore_ip("addi %d15,%d15,-2621", insn);        // iiw
+// ps.tricore_ip("movh %d15,hi:.LC0", insn);           // iU
+ps.tricore_ip("lea %a4,[%a15]lo:.LC0", insn);       // ASU
+
 console.log(insn);

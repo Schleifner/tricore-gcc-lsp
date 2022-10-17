@@ -1,49 +1,66 @@
 {
 	"name": "tricore-lsp",
-  "description": "Tricore language server",
-  "author": "Xinquan XU",
-  "license": "MIT",
-  "version": "1.0.0",
-  "publisher": "Xinquan XU",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "engines": {
-    "vscode": "^1.63.0"
-  },
+	"description": "Tricore language server",
+	"author": "Xinquan XU",
+	"license": "MIT",
+	"version": "1.0.0",
+	"publisher": "Xinquan XU",
+	"repository": {
+		"type": "git",
+		"url": ""
+	},
+	"engines": {
+		"vscode": "^1.63.0"
+	},
 	"categories": [
-    "Programming Languages"
-  ],
-  "activationEvents": [
-    "onLanguage:tricore",
-    "workspaceContains:**/*.{s,S,asm,ASM}"
-  ],
-  "main": "./client/out/extension",
-  "contributes": {
-    "languages": [
-      {
-        "id": "Tricore Assembly",
-        "aliases": [
-          "Tricore Assembly",
-          "Tricore Assembly"
-        ],
-        "extensions": [
-          ".s",
-          ".S",
-          ".asm"
-        ],
-        "configuration": "./client/language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "Tricore Assembly",
-        "scopeName": "source.tricore",
-        "path": "./client/syntaxes/Tricore Assembly.tmLanguage.json"
-      }
-    ]
-  },
+		"Programming Languages"
+	],
+	"activationEvents": [
+		"onLanguage:tricore",
+		"workspaceContains:**/*.{s,S,asm,ASM}"
+	],
+	"main": "./client/out/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "Tricore Assembly",
+				"aliases": [
+					"Tricore Assembly",
+					"Tricore Assembly"
+				],
+				"extensions": [
+					".s",
+					".S",
+					".asm"
+				],
+				"configuration": "./client/language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "Tricore Assembly",
+				"scopeName": "source.tricore",
+				"path": "./client/syntaxes/Tricore Assembly.tmLanguage.json"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "tricore",
+			"properties": {
+				"tricore.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -b",
@@ -56,6 +73,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"eslint": "^8.13.0",
+		"ts-node": "^10.9.1",
 		"typescript": "^4.8.4",
 		"vscode-oniguruma": "^1.6.2"
 	}
