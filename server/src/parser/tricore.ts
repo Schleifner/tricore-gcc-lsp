@@ -107,8 +107,68 @@ export interface tricore_insn_t {
   matches_v: number[];
   matches_6: number[];
   matches_k: number[];
+  is_odd: number[];
   needs_prefix: number;
 };
+
+export interface operand_compatibility {
+  key: string;
+  value: string;
+};
+
+export const operand_compatibility_matrix: operand_compatibility[] = [
+  { key: "d", value: "di" },
+  { key: "g", value: "g" },
+  { key: "G", value: "G" },
+  { key: "-", value: "-" },
+  { key: "+", value: "+" },
+  { key: "l", value: "l" },
+  { key: "L", value: "L" },
+  { key: "D", value: "D" },
+  { key: "i", value: "i" },
+  { key: "a", value: "aUAIP" },
+  { key: "A", value: "AP" },
+  { key: "I", value: "I" },
+  { key: "P", value: "P" },
+  { key: "c", value: "cU123f5v68nqW" },
+  { key: "1", value: "1U" },
+  { key: "2", value: "2U1" },
+  { key: "3", value: "3U12" },
+  { key: "4", value: "4U123" },
+  { key: "f", value: "fU123" },
+  { key: "5", value: "5U123fvmx" },
+  { key: "F", value: "FU1234f" },
+  { key: "v", value: "vU123fm" },
+  { key: "6", value: "6U123f5vmx" },
+  { key: "8", value: "8U123f5v6mx" },
+  { key: "9", value: "9U1234f5Fv68mxrR" },
+  { key: "n", value: "nU123f5v68mx" },
+  { key: "k", value: "kU123f5v68nmx" },
+  { key: "h", value: "hkU123f5v68nmx" },
+  { key: "0", value: "0U1234f5Fv689nmxrR" },
+  { key: "q", value: "qU123f5v68nkh" },
+  { key: "w", value: "wU1234f5Fv689nk0hqmxrRo" },
+  { key: "W", value: "WU123f5v68nkhqmx" },
+  { key: "M", value: "MU1234f5Fv689nk0hqwWmxrRoO" },
+  { key: "m", value: "mU123fv" },
+  { key: "x", value: "xU123m" },
+  { key: "r", value: "rUF4" },
+  { key: "R", value: "RU1234f5Fv689mxr" },
+  { key: "o", value: "oU1234f5Fv689nk0hqwmxrR" },
+  { key: "O", value: "OU1234f5Fv689nk0hqwWmxrRo" },
+  { key: "t", value: "tU1234f5Fv689nk0hqwWMmxrRoO" },
+  { key: "T", value: "TU1234f5Fv689nk0hqwWMmxrRoOt" },
+  { key: "V", value: "VU1234f5Fv689nk0hqwWMmxrRoOtT" },
+  { key: "U", value: "U" },
+  { key: "@", value: "@S&" },
+  { key: "&", value: "&" },
+  { key: "<", value: "<" },
+  { key: ">", value: ">" },
+  { key: "*", value: "*" },
+  { key: "#", value: "#" },
+  { key: "?", value: "?" },
+  { key: "S", value: "S" },
+];
 
 export const tricore_opcodes: tricore_opcode[] = [
   {name: "abs",        len32: true , opcode: 0x01c0000b, lose: 0x0e3f0ff4, format: _tricore_fmt.TRICORE_FMT_RR,  nr_operands: 2, 
@@ -1341,14 +1401,14 @@ export const tricore_opcodes: tricore_opcode[] = [
     args: "",          fields: ""      },
   {name: "nop",        len32: true , opcode: 0x0000000d, lose: 0xfffffff2, format: _tricore_fmt.TRICORE_FMT_SYS, nr_operands: 0, 
     args: "",          fields: ""      },
-  {name: "nor",        len32: false, opcode: 0x00000046, lose: 0xfffff0b9, format: _tricore_fmt.TRICORE_FMT_SR,  nr_operands: 1, 
-    args: "d",         fields: "1"     },
   {name: "nor",        len32: true , opcode: 0x00b0000f, lose: 0x0f4f00f0, format: _tricore_fmt.TRICORE_FMT_RR,  nr_operands: 3, 
     args: "ddd",       fields: "143"   },
   {name: "nor",        len32: true , opcode: 0x0160008f, lose: 0x0e800070, format: _tricore_fmt.TRICORE_FMT_RC,  nr_operands: 3, 
     args: "ddn",       fields: "132"   },
   {name: "nor.t",      len32: true , opcode: 0x00400087, lose: 0x00200078, format: _tricore_fmt.TRICORE_FMT_BIT, nr_operands: 5, 
     args: "dd5d5",     fields: "15342" },
+  {name: "not",        len32: false, opcode: 0x00000046, lose: 0xfffff0b9, format: _tricore_fmt.TRICORE_FMT_SR,  nr_operands: 1, 
+    args: "d",         fields: "1"     },
   {name: "or",         len32: false, opcode: 0x000000a6, lose: 0xffff0059, format: _tricore_fmt.TRICORE_FMT_SRR, nr_operands: 2, 
     args: "dd",        fields: "21"    },
   {name: "or",         len32: false, opcode: 0x00000096, lose: 0xffff0069, format: _tricore_fmt.TRICORE_FMT_SC,  nr_operands: 2, 

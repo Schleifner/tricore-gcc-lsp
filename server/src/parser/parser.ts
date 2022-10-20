@@ -1,7 +1,16 @@
-import { tricore_opcodes, tricore_opcode, tricore_insn_t, MAX_OPS, pfxs, prefix_t } from "./tricore";
+import { 
+  pfxs, 
+  MAX_OPS, 
+  prefix_t, 
+  tricore_insn_t, 
+  tricore_opcode, 
+  tricore_opcodes, 
+  operand_compatibility_matrix 
+} from "./tricore";
 
 export default class Parser {
   private hash_ops = new Map<string, tricore_opcode[]>();
+  private operand_matrix = new Map<string, string>();
 
   constructor() {
     this.md_begin();
@@ -15,6 +24,10 @@ export default class Parser {
       } else {
         this.hash_ops.set(opcode.name, [opcode]);
       }
+    });
+    operand_compatibility_matrix.forEach(pair => {
+      const { key, value } = pair;
+      this.operand_matrix.set(key, value);
     });
   }
 
@@ -191,7 +204,6 @@ export default class Parser {
         the_insn.error = "bad numeric constant";
       }
     } else if (str.match(/^[a-zA-Z_][0-9a-zA-Z_]*$/)) {
-      console.log(str);
       the_insn.label.push(str);
     } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
       the_insn.label.push(str.slice(0, -1));
@@ -215,6 +227,7 @@ export default class Parser {
         return 0;
       }
       the_insn.ops[opnr] = this.classify_numeric(numeric);
+      the_insn.is_odd[opnr] = (numeric & 1);
       if (prefix != prefix_t.PREFIX_NONE) {
         the_insn.ops[opnr] = "q"; /* Matches both "w" and "W"! */
       } else if (the_insn.ops[opnr] === "k") {
@@ -301,7 +314,6 @@ export default class Parser {
 
           if (dstIndex < dst.length) {
             the_insn.error = "Trailing chars after register specification";
-            console.log(the_insn.error);
             return;
           }
           if (mode === "d") {
@@ -436,8 +448,43 @@ export default class Parser {
     the_insn.nops = ++numops;
   }
 
-  private md_assemble(str: string) {
+  find_opcode(the_insn: tricore_insn_t) {
+    const ops = this.hash_ops.get(the_insn.name);
+    if (!ops) {
+      return undefined;
+    }
+    for (const op of ops) {
+      if (op.nr_operands !== the_insn.nops || (!op.len32 && the_insn.needs_prefix)) continue;
+      
+      let index: number;
+      for (index = 0; index < the_insn.nops; ++index) {
+        if (this.operand_matrix.get(op.args.charAt(index))!.indexOf(the_insn.ops[index]) === -1
+          || (op.args.charAt(index) === "v" && !the_insn.matches_v[index])
+          || (op.args.charAt(index) === "6" && !the_insn.matches_6[index])
+          || (op.args.charAt(index) === "k" && !the_insn.matches_k[index])
+        ) break;
+        if (!op.len32 && the_insn.ops[index] === "U" && "mxrRoO".indexOf(op.args.charAt(index)) === -1) break;
+      }
 
+      if (index === the_insn.nops) {
+        return op;
+      }
+    }
+
+    return undefined;
+  }
+
+  private md_assemble(str: string, the_insn: tricore_insn_t) {
+    this.tricore_ip(str, the_insn);
+    if (this.find_opcode(the_insn) === undefined) {
+
+    }
+
+    for (let index = 0; index < the_insn.nops; ++index) {
+      if ("mxrRoO".indexOf(the_insn.ops[index]) >= 0 && the_insn.is_odd[index]) {
+        // as_bad("Displacement is not even");
+      }
+    }
   }
 
 }
@@ -452,15 +499,116 @@ const insn: tricore_insn_t = {
   matches_v: [],
   matches_6: [],
   matches_k: [],
+  is_odd: [],
   needs_prefix: 0
-}
-// ps.tricore_ip("movh %d15,hi:.LC0", insn);
-// ps.tricore_ip("st.w [%a14]-4,%d15", insn);
-// ps.tricore_ip("ld.w %d15,[%sp]4", insn);
+};
 
-// ps.tricore_ip("movh %d15,16457", insn);             // iq
-// ps.tricore_ip("addi %d15,%d15,-2621", insn);        // iiw
-// ps.tricore_ip("movh %d15,hi:.LC0", insn);           // iU
-ps.tricore_ip("lea %a4,[%a15]lo:.LC0", insn);       // ASU
+// ps.tricore_ip("st.w [%a14]-4,%d15", insn);          // @4i   find_opcode -> @wd + 5
+// ps.tricore_ip("ld.w %d15,[%sp]4", insn);            // i&3   find_opcode -> i&k + 29
+// ps.tricore_ip("movh %d15,16457", insn);             // iq    find_opcode -> dW + 14
+// ps.tricore_ip("addi %d15,%d15,-2621", insn);        // iiw   find_opcode -> ddw + 14
+// ps.tricore_ip("movh %d15,hi:.LC0", insn);           // iU    find_opcode -> dW + 14
+// ps.tricore_ip("lea %a4,[%a15]lo:.LC0", insn);       // ASU   find_opcode -> a@w + 5
+
+// ps.tricore_ip("ld.w %d4,3026", insn);               // dq    find_opcode -> dt + 0     ABS
+// ps.tricore_ip("ld.w %d5,hi:.LC0", insn);            // dU    find_opcode -> dt + 0     ABS
+
+// ps.tricore_ip("st.t 0x90000000,7,1", insn);         // t31   find_opcode -> t31 + 1    ABSB
+
+// ps.tricore_ip("call foobar", insn)                  // U     find_opcode -> R + 25     SB
+// ps.tricore_ip("call 0x900000", insn)                // 8     find_opcode -> O + 2      B
+
+// ps.tricore_ip("xnor.t %d3,%d1,3,%d2,5", insn)       // dd2d3 find_opcode -> dd5d5 + 3  BIT
+
+// ps.tricore_ip("ld.w %d4,[%a14+]-4", insn);          // d>4   find_opcode -> d>0 + 4    BO
+// ps.tricore_ip("ld.w %d4,[+%a14]-4", insn);          // d<4   find_opcode -> d<0 + 4    BO
+// ps.tricore_ip("ld.w %d4,[%a4+r]", insn);            // d#    find_opcode -> d# + 4     BO
+// ps.tricore_ip("ld.w %d4,[%a4+c],16", insn);         // d*v   find_opcode -> d*0 + 4    BO
+
+// ps.tricore_ip("ld.w %d4,[%a14]-4", insn);           // d@4   find_opcode -> d@w + 5    BOL
+
+// ps.tricore_ip("jeq %d5,6,foobar", insn);            // d3U   find_opcode -> d4o + 6    BRC
+
+// ps.tricore_ip("jnz.t %d1,13,2156", insn);           // dfq   find_opcode -> d5o + 7    BRN
+
+// ps.tricore_ip("jeq %d1,%d2,foobar", insn);          // ddU   find_opcode -> ddo + 8    BRR
+
+// ps.tricore_ip("add %d3,%d1,126", insn);             // dd8   find_opcode -> dd9 + 9    RC
+
+// ps.tricore_ip("imask %e2,6,5,11", insn);            // D33f  find_opcode -> Df55 + 10  RCPW
+
+// ps.tricore_ip("madd %d0,%d1,%d2,7", insn);          // ddd3  find_opcode -> ddd9 + 11  RCR
+// ps.tricore_ip("madd %e0,%e0,%d3,80", insn);         // DDd8  find_opcode -> DDd9 + 11  RCR
+
+// ps.tricore_ip("insert %d3,%d1,6,%e4", insn);        // dd3D  find_opcode -> ddfD + 12  RCRR
+
+// ps.tricore_ip("insert %d3,%d1,0,%d4,8", insn);      // dd1df find_opcode -> ddfd5 + 13 RCRW
+
+// ps.tricore_ip("addi %d3,%d1,-14526", insn);         // ddo   find_opcode -> ddw + 14   RLC
+
+// ps.tricore_ip("abs %d3,%d1", insn);                 // dd    find_opcode -> dd + 15    RR
+
+// ps.tricore_ip("mul.h %e0,%d3,%d4ll,1", insn);       // Dd-1  find_opcode -> Dd-1 + 16  RR1
+// ps.tricore_ip("mul.h %e0,%d3,%d4lu,1", insn);       // Ddl1  find_opcode -> Ddl1 + 16  RR1
+// ps.tricore_ip("mul.h %e0,%d3,%d4ul,1", insn);       // DdL1  find_opcode -> DdL1 + 16  RR1
+// ps.tricore_ip("mul.h %e0,%d3,%d4uu,1", insn);       // Dd+1  find_opcode -> Dd+1 + 16  RR1
+
+// ps.tricore_ip("mul %d3,%d1,%d2", insn);             // ddd   find_opcode -> ddd + 17   RR2
+// ps.tricore_ip("mul %e2,%d5,%d1", insn);             // Ddd   find_opcode -> Ddd + 17   RR2
+
+// ps.tricore_ip("imask %e2,%d1,5,11", insn);          // Dd3f  find_opcode -> Dd55 + 18  RRPW
+
+// ps.tricore_ip("add.f %d3,%d1,%d2", insn);           // ddd   find_opcode -> ddd + 19   RRR
+// ps.tricore_ip("cadd %d3,%d4,%d1,%d2", insn);        // dddd  find_opcode -> dddd + 19  RRR
+
+// ps.tricore_ip("madd.h %e0,%e2,%d4,%d5ll,1", insn);  // DDd-1 find_opcode -> DDd-1 + 20 RRR1
+// ps.tricore_ip("madd.h %e0,%e2,%d4,%d5lu,1", insn);  // DDdl1 find_opcode -> DDdl1 + 20 RRR1
+// ps.tricore_ip("madd.h %e0,%e2,%d4,%d5ul,1", insn);  // DDdL1 find_opcode -> DDdL1 + 20 RRR1
+// ps.tricore_ip("madd.h %e0,%e2,%d4,%d5uu,1", insn);  // DDd+1 find_opcode -> DDd+1 + 20 RRR1
+
+// ps.tricore_ip("madd %d0,%d1,%d2,%d3", insn);        // dddd  find_opcode -> dddd + 21  RRR2
+// ps.tricore_ip("madd %e0,%e2,%d6,%d11", insn);       // DDdd  find_opcode -> DDdd + 21  RRR2
+
+// ps.tricore_ip("insert %d3,%d1,%d2,%e4", insn);      // dddD  find_opcode -> dddD + 22  RRRR
+
+// ps.tricore_ip("insert %d3,%d1,%d2,%d4,8", insn);    // ddddf find_opcode -> dddd5 + 23 RRRW
+
+// ps.tricore_ip("debug", insn);                       // ''    find_opcode -> '' + 32    SYS
+// ps.tricore_ip("disable %d3", insn);                 // d     find_opcode -> d + 24     SYS
+
+// ps.tricore_ip("jeq %d15,6,12", insn);               // i3f   find_opcode -> i4m + 26   SBC
+// ps.tricore_ip("jeq %d15,6,foobar", insn);           // i3U   find_opcode -> i4x + 26   SBC
+
+// ps.tricore_ip("jeq %d15,%d2,12", insn);             // idf   find_opcode -> idm + 27   SBR
+// ps.tricore_ip("jeq %d15,%d2,foobar", insn);         // idU   find_opcode -> idx + 27   SBR
+
+// ps.tricore_ip("jz.t %d15,1,foobar", insn);          // i1U   find_opcode -> ifm + 28   SBRN
+
+// ps.tricore_ip("mov %d15,126", insn);                // i8    find_opcode -> i8 + 29    SC
+
+// ps.tricore_ip("ld.a %a4,[%a5]", insn);              // A@    find_opcode -> a@ + 30    SLR
+// ps.tricore_ip("ld.a %a4,[%a5+]", insn);             // A>    find_opcode -> a> + 30    SLR
+
+// ps.tricore_ip("ld.a %a4,[%a15]+4", insn);           // AS3   find_opcode -> aS6 + 31   SLRO
+
+// ps.tricore_ip("ji %a2", insn);                      // A     find_opcode -> a + 32     SR
+
+// ps.tricore_ip("add %d2,4", insn);                   // d3    find_opcode -> d4 + 33    SRC
+// ps.tricore_ip("add %d2,%d15,4", insn);              // di3   find_opcode -> di4 + 33   SRC 
+// ps.tricore_ip("add %d15,%d2,4", insn);              // id3   find_opcode -> id4 + 33   SRC
+
+// ps.tricore_ip("ld.a %a15,[%a12]+4", insn);          // I@3   find_opcode -> I@6 + 34   SRO
+
+// ps.tricore_ip("add %d0,%d1", insn);                 // dd    find_opcode -> dd + 35    SRR
+// ps.tricore_ip("add %d0,%d15,%d1", insn);            // did   find_opcode -> did + 35   SRR
+// ps.tricore_ip("add %d15,%d0,%d1", insn);            // idd   find_opcode -> idd + 35   SRR
+
+// ps.tricore_ip("addsc.a %a0,%a1,%d15,1", insn);      // Aai1  find_opcode -> aai2 + 36  SRRS
+
+// ps.tricore_ip("st.a [%a1],%a0", insn);              // @A    find_opcode -> @a + 37    SSR
+// ps.tricore_ip("st.a [%a1+],%a0", insn);             // >A    find_opcode -> >a + 37    SSR
+
+// ps.tricore_ip("st.a [%a15]+4,%a1", insn);           // S3a   find_opcode -> S6a + 38   SSRO
 
 console.log(insn);
+console.log(ps.find_opcode(insn));

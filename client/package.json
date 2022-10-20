@@ -13,17 +13,11 @@
     "vscode": "^1.63.0"
   },
   "scripts": {
-    "test": "jest"
   },
   "dependencies": {
-    "typescript": "^4.8.3",
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.1.2",
-    "@types/vscode": "^1.63.0",
-    "jest": "^29.1.2",
-    "ts-jest": "^29.0.3",
-    "vscode-oniguruma": "^1.6.2"
+    "@types/vscode": "^1.63.0"
   }
 }
