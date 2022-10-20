@@ -421,7 +421,7 @@ beforeAll(async () => {
 });
 
 describe.each(testDatas)("Tricore Syntax Highlight", (data) => {
-  const { name, pattern, testStrings } = data
+  const { name, pattern, testStrings } = data;
   test(name, () => {
     expect(regularTest(pattern, testStrings)).toEqual(true);
   });
