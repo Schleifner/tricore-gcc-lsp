@@ -16,16 +16,15 @@
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onLanguage:tricore",
+		"onLanguage:Tricore",
 		"workspaceContains:**/*.{s,S,asm,ASM}"
 	],
 	"main": "./client/out/extension",
 	"contributes": {
 		"languages": [
 			{
-				"id": "Tricore Assembly",
+				"id": "Tricore",
 				"aliases": [
-					"Tricore Assembly",
 					"Tricore Assembly"
 				],
 				"extensions": [
@@ -38,7 +37,7 @@
 		],
 		"grammars": [
 			{
-				"language": "Tricore Assembly",
+				"language": "Tricore",
 				"scopeName": "source.tricore",
 				"path": "./client/syntaxes/Tricore Assembly.tmLanguage.json"
 			}
@@ -47,15 +46,14 @@
 			"type": "object",
 			"title": "tricore",
 			"properties": {
-				"tricore.trace.server": {
-					"scope": "window",
+				"Tricore.trace.server": {
 					"type": "string",
 					"enum": [
 						"off",
 						"messages",
 						"verbose"
 					],
-					"default": "off",
+					"default": "verbose",
 					"description": "Traces the communication between VS Code and the language server."
 				}
 			}

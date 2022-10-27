@@ -8,6 +8,8 @@ import {
   operand_compatibility_matrix 
 } from "./tricore";
 
+export type Compiler = "tasking" | "gcc/g++"; 
+
 export default class Parser {
   private hash_ops = new Map<string, tricore_opcode[]>();
   private operand_matrix = new Map<string, string>();
@@ -188,9 +190,8 @@ export default class Parser {
           break;
 
         default:
-          // TO FIX: use as_bad() to print error rather than the_insn.error;
           the_insn.error = "Illegal prefix for GOT expression";
-          break;
+          return 0;
       }
     }
 
@@ -200,8 +201,8 @@ export default class Parser {
       || str.match(/^0[Xx][0-9a-fA-F]+$/)) {
       numeric = Number(str);
       if (!numeric) {
-        // TO FIX: use as_bad() to print error rather than the_insn.error; 
         the_insn.error = "bad numeric constant";
+        return 0;
       }
     } else if (str.match(/^[a-zA-Z_][0-9a-zA-Z_]*$/)) {
       the_insn.label.push(str);
@@ -476,15 +477,36 @@ export default class Parser {
 
   private md_assemble(str: string, the_insn: tricore_insn_t) {
     this.tricore_ip(str, the_insn);
+    if (the_insn.error.length > 0) {
+      // push to DiagnosticInfo
+    }
     if (this.find_opcode(the_insn) === undefined) {
-
+      // push <Opcode/operand mismatch: %s> to DiagnosticInfo
     }
 
     for (let index = 0; index < the_insn.nops; ++index) {
       if ("mxrRoO".indexOf(the_insn.ops[index]) >= 0 && the_insn.is_odd[index]) {
-        // as_bad("Displacement is not even");
+        // push <"Displacement is not even";> to DiagnosticInfo
+        break;
       }
     }
+
+    if (the_insn.label.length > 0) {
+      // check if label exists in global symbol table.
+    }
+    
   }
 
+  parse_a_document(input: string) {
+    
+  }
+
+}
+
+
+function preprocessor(str: string) {
+  let pos = 0, newStr: string;
+  while (pos < str.length) {
+    
+  }
 }
