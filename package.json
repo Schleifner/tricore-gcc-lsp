@@ -21,6 +21,11 @@
 	],
 	"main": "./client/out/extension",
 	"contributes": {
+		"breakpoints": [
+			{
+				"language": "Tricore"
+			}
+		],
 		"languages": [
 			{
 				"id": "Tricore",

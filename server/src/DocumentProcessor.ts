@@ -13,11 +13,11 @@ export default class DocumentProcessor {
 	private parser: Parser;
 
 	constructor(protected readonly ctx: Context) {
-		this.parser = new Parser();
+		this.parser = new Parser("");
 	}
 
 	process(document: TextDocument) {
-		const diagnostics = this.parser.parse_a_document(document.getText());
+		const diagnostics = this.parser.parse_a_document();
 		// this.ctx.connection.sendDiagnostics({
 		// 	uri: document.uri,
 		// 	diagnostics

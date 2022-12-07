@@ -1,5 +1,5 @@
 import Parser from '../../src/parser/parser'
-import { tricore_insn_t } from '../../src/parser/tricore';
+import { tricore_insn_t } from '../../src/parser/instruction';
  
 type insFormatTestDatas = {
 	insn: string;
@@ -10,7 +10,7 @@ type insFormatTestDatas = {
 
 const testDatas: insFormatTestDatas = [
 	{ insn: "ld.w %d4,3026", 							name: "ld.w", 		operands: "dt", 		format: 0 	},
-	{ insn: "ld.w %d5,hi:.LC0", 					name: "ld.w", 		operands: "dt", 		format: 0 	},
+	{ insn: "ld.w %d5,foobar", 						name: "ld.w", 		operands: "dt", 		format: 0 	},
 	{ insn: "st.t 0x90000000,7,1", 				name: "st.t", 		operands: "t31", 		format: 1 	},
 	{ insn: "call foobar", 								name: "call", 		operands: "R", 			format: 25 	},
 	{ insn: "call 0x900000", 							name: "call", 		operands: "O", 			format: 2 	},
@@ -93,7 +93,7 @@ describe.each(testDatas)("Tricore assembly instruction parser", (data) => {
 		needs_prefix: 0
 	};
 
-	test(name, () => {
+	test(`${name}-${format}}`, () => {
 		ps.tricore_ip(insn, the_insn);
 		const opcode = ps.find_opcode(the_insn);
 		expect(opcode).not.toBeUndefined();
