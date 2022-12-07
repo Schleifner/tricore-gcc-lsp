@@ -21,7 +21,6 @@ import {
   isWhiteSpace,
 } from "./util";
 
-export type Compiler = "tasking" | "gcc/g++"; 
 export interface ParserDiagnostic {
   line: number,
   message: string;
@@ -29,7 +28,8 @@ export interface ParserDiagnostic {
 
 export default class Parser {
   private symbolTable = new Set<string>();
-  private externSymbolTable = new Set<string>();
+  private undefinedSymbols: [number, string][] = [];
+  private externalSymbols = new Set<string>();
   private diagnosticInfos: ParserDiagnostic[] = [];
   private document: string;
   private lineCounter: number;
@@ -45,14 +45,14 @@ export default class Parser {
     let regno = 0, digits_seen = 0;
     
     while (isDecimal(str.charCodeAt(digits_seen))) {
-      regno = regno * 10 + (str.charCodeAt(digits_seen) - 48);
+      regno = regno * 10 + (str.charCodeAt(digits_seen) - CharCode._0);
       ++digits_seen;
       if ((regno > 15) || (digits_seen > 2)) {
-        return { regno: -1, offset: digits_seen, error: "Invalid register number" };
+        return { regno: -1, offset: digits_seen, error: "invalid register number" };
       }
     }
     if (!digits_seen) {
-      return { regno: -1, offset: digits_seen, error: "Missing register number" };
+      return { regno: -1, offset: digits_seen, error: "missing register number" };
     }
     return { regno, offset: digits_seen };
   }
@@ -198,7 +198,7 @@ export default class Parser {
           break;
 
         default:
-          the_insn.error = "Illegal prefix for GOT expression";
+          the_insn.error = "illegal prefix for GOT expression";
           return 0;
       }
     }
@@ -228,11 +228,11 @@ export default class Parser {
         case PREFIX_T.PREFIX_UP:
           break;
         default:
-          the_insn.error = "Illegal prefix for constant expression";
+          the_insn.error = "illegal prefix for constant expression";
           return 0;
       }
       if (bitposFlag && (numeric < 0 || numeric > 7)) {
-        the_insn.error = "Illegal constant bit position";
+        the_insn.error = "illegal constant bit position";
         return 0;
       }
       the_insn.ops[opnr] = this.classify_numeric(numeric);
@@ -274,7 +274,7 @@ export default class Parser {
 
     let opcode: TRICORE_OPCODE[] | undefined;
     if ((opcode = opcodeHash.get(tokens[0])) === undefined) {
-      the_insn.error = "Unknown instruction";
+      the_insn.error = "unknown instruction";
       return;
     }
     the_insn.name = opcode[0].name;
@@ -283,7 +283,7 @@ export default class Parser {
     while(tokenIndex <= tokens.length) {
       const dst = tokens[tokenIndex - 1];
       if (++numops === MAX_OPS) {
-        the_insn.error = "Too many operands";
+        the_insn.error = "too many operands";
         return;
       }
       let preinc = 0, dstIndex = 0, regno = -1;
@@ -295,7 +295,7 @@ export default class Parser {
             break;
           }
           if ((mode !== CharCode.d) && (mode !==  CharCode.e) && (mode !== CharCode.a)) {
-            the_insn.error = "Invalid register specification";
+            the_insn.error = "invalid register specification";
             return;
           }
 
@@ -322,14 +322,14 @@ export default class Parser {
           }
 
           if (dstIndex < dst.length) {
-            the_insn.error = "Trailing chars after register specification";
+            the_insn.error = "trailing chars after register specification";
             return;
           }
           if (mode === CharCode.d) {
             the_insn.ops[numops] = (regno === 15) ? "i" : "d"; 
           } else if (mode === CharCode.e) {
             if (regno & 1) {
-              the_insn.error = "Invalid extended register specification";
+              the_insn.error = "invalid extended register specification";
               return;
             }
             the_insn.ops[numops] = "D";
@@ -342,7 +342,7 @@ export default class Parser {
           break;
         case CharCode.OpenBracket:
           if (dstIndex + 1 >= dst.length) {
-            the_insn.error = "Missing address register";
+            the_insn.error = "missing address register";
             return;
           }
           if (dst.charCodeAt(++dstIndex) === CharCode.Plus) {
@@ -350,7 +350,7 @@ export default class Parser {
             preinc = 1;
           }
           if (dst.charCodeAt(dstIndex++) !== CharCode.Percent) {
-            the_insn.error = "Missing address register";
+            the_insn.error = "missing address register";
             return;
           }
           if ((dst.charCodeAt(dstIndex) === CharCode.s) && dst.charCodeAt(dstIndex + 1) === CharCode.p) {
@@ -367,12 +367,12 @@ export default class Parser {
             }
             dstIndex += offset;
           } else {
-            the_insn.error = "Invalid or missing address register";
+            the_insn.error = "invalid or missing address register";
             return;
           }
 
           if (dstIndex >= dst.length) {
-            the_insn.error = "Missing ']'";
+            the_insn.error = "missing ']'";
             return;
           } else if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
             if (preinc) {
@@ -392,11 +392,11 @@ export default class Parser {
             }
           } else if (dst.charCodeAt(dstIndex) === CharCode.Plus) {
             if (preinc) {
-              the_insn.error = "Invalid address mode";
+              the_insn.error = "invalid address mode";
               return;
             }
             if (++dstIndex >= dst.length) {
-              the_insn.error = "Missing ']'";
+              the_insn.error = "missing ']'";
               return;
             }
             if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
@@ -413,11 +413,11 @@ export default class Parser {
             mode = dst.charCodeAt(dstIndex);
             if ((mode === CharCode.c) || (mode === CharCode.r) || (mode === CharCode.i)) {
               if (regno & 1) {
-                the_insn.error = "Even address register required";
+                the_insn.error = "even address register required";
                 return;
               }
               if (dst.charCodeAt(++dstIndex) != CharCode.CloseBracket) {
-                the_insn.error = "Missing ']'";
+                the_insn.error = "missing ']'";
                 return;
               }
               if (mode === CharCode.c) {
@@ -431,17 +431,17 @@ export default class Parser {
               } else {
                 the_insn.ops[numops] = (mode === CharCode.r) ? "#" : "?";
                 if (++dstIndex < dst.length) {
-                  the_insn.error = "No offset allowed for this mode";
+                  the_insn.error = "no offset allowed for this mode";
                   return;
                 }
               }
               break;
             } else {
-              the_insn.error = "Invalid address mode";
+              the_insn.error = "invalid address mode";
               return;
             }
           } else {
-            the_insn.error = "Invalid address mode";
+            the_insn.error = "invalid address mode";
             return;
           }
         default:
@@ -500,26 +500,21 @@ export default class Parser {
       return the_insn.error;
     }
     if (this.find_opcode(the_insn) === undefined) {
-      return "Opcode/operand mismatch: " + oneLineAsm;
+      return "opcode/operand mismatch: " + oneLineAsm;
     }
 
     for (let index = 0; index < the_insn.nops; ++index) {
       if ("mxrRoO".indexOf(the_insn.ops[index]) >= 0 && the_insn.is_odd[index]) {
-        return "Displacement is not even;";
+        return "displacement is not even;";
       }
     }
 
     if (the_insn.label.length > 0) {
-      // the_insn.label.forEach(item => {
-      //   if (!this.symbolTable.has(item)) {
-      //     this.externSymbolTable.add(item);
-      //   }
-      // });
-      for (let item of the_insn.label) {
+      the_insn.label.forEach(item => {
         if (!this.symbolTable.has(item)) {
-          return `Unknown Symbol ${item}`;
+          this.undefinedSymbols.push([this.lineCounter, item]);
         }
-      }
+      });
     }
 
     return;
@@ -559,10 +554,13 @@ export default class Parser {
             case DIRECTIVE_T.MULTI_SYMBOL:
               this.getMultiSymbol();
               break;
+            case DIRECTIVE_T.EXTERN_SYMBOL:
+              this.getExternSymbol();
+              break;
             default:
               this.diagnosticInfos.push({
                 line: this.lineCounter,
-                message: "Unknown pseudo-op"
+                message: "unknown pseudo-op"
               });
               break;
           }
@@ -590,6 +588,10 @@ export default class Parser {
           this.symbolTable.add(text.slice(startPos, this.pos));
           this.pos ++;
           continue;
+        } else if (text.charCodeAt(this.pos) === CharCode.Dollar && text.charCodeAt(this.pos + 1) === CharCode.Colon) {
+          this.symbolTable.add(text.slice(startPos, this.pos));
+          this.pos += 2;
+          continue;
         }
         this.pos = startPos + 1;
       }
@@ -598,12 +600,23 @@ export default class Parser {
       this.diagnosticInfos.push({ line: this.lineCounter, message: `junk at end of line, first unrecognize character is '${text.charAt(this.pos)}'` });
       this.ignoreRestOfLine();
     }
+    this.undefinedSymbols.forEach( ([line, symbol]) => {
+      if (!this.externalSymbols.has(symbol)) {
+        this.diagnosticInfos.push({ line, message: "unknown symbol" });
+      }
+    });
     return this.diagnosticInfos;
   }
 
   getSingleSymbol() {
     let s = this.getSymbol();
     this.symbolTable.add(s);
+    this.ignoreRestOfLine();
+  }
+
+  getExternSymbol() {
+    let s = this.getSymbol();
+    this.externalSymbols.add(s);
     this.ignoreRestOfLine();
   }
 
