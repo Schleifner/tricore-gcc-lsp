@@ -16,8 +16,8 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "comment.line.semicolon.tricore",
-    "pattern": "(?:;).*$",
-    "testStrings": ["; This is a semicolon line comment"]
+    "pattern": "(?:#).*$",
+    "testStrings": ["# This is a semicolon line comment"]
   },
   {
     "name": "storage.register.general-purpose.tricore",
@@ -87,84 +87,55 @@ const testDatas: syntaxTestDatas = [
     ]
   },
   {
-    "name": "keyword.control.controls.listing.tricore",
-    "pattern": "\\$(?i)(?:list|page|prctl|s?title)(?-i)\\b",
+    "name": "constant.numeric.dec.tricore",
+    "pattern": "\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b",
     "testStrings": [
-      "$list", "$page", "$prctl", "$stitle", "$title",
-      "$LIST", "$PAGE", "$PRCTL", "$STITLE", "$TITLE"
-    ]
-  },
-  {
-    "name": "keyword.control.controls.miscellaneous.tricore",
-    "pattern": "\\$(?i)(?:case|cpu_tc\\d+|debug|hw_only|ident|mmu|no_fpu|object|tc(?:131|16[x2]?)|warning)(?-i)\\b",
-    "testStrings": [
-      "$case", "$cpu_tc018", "$debug", "$hw_only", "$ident", "$mmu", "$no_fpu", "$object", "$tc131", "$tc16", "$tc16x", "$tc162", "$warning",
-      "$CASE", "$CPU_TC018", "$DEBUG", "$HW_ONLY", "$IDENT", "$MMU", "$NO_FPU", "$OBJECT", "$TC131", "$TC16", "$TC16X", "$TC162", "$WARNING"
+      "6e10", "6E10", "12", "1245", "3.14", "2.7e10", "2.7E10"
     ]
   },
   {
     "name": "constant.numeric.dec.tricore",
-    "pattern": "#?\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b",
-    "testStrings": [
-      "6e10", "6E10", "12", "1245", "3.14", "2.7e10", "2.7E10",
-      "#6e10", "#6E10", "#12", "#1245", "#3.14", "#2.7e10", "#2.7E10"
-    ]
-  },
-  {
-    "name": "constant.numeric.dec.tricore",
-    "pattern": "#?(\\.\\d+)\\b",
-    "testStrings": [".6", "#.6"]
+    "pattern": "(\\.\\d+)\\b",
+    "testStrings": [".6"]
   },
   {
     "name": "constant.numeric.bin.tricore",
-    "pattern": "#?\\b0[Bb][01]+\\b",
-    "testStrings": ["0B1101", "0b11001010", "#0B1101", "#0b11001010"]
+    "pattern": "\\b0[Bb][01]+\\b",
+    "testStrings": ["0B1101", "0b11001010"]
   },
   {
     "name": "constant.numeric.hex.tricore",
-    "pattern": "#?\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b",
-    "testStrings": ["0X12FF", "0x45", "0xfa10", "0b", "#0X12FF", "#0x45", "#0xfa10", "0B"]
+    "pattern": "\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b",
+    "testStrings": ["0X12FF", "0x45", "0xfa10", "0b", "0B"]
   },
   {
     "name": "variable.label.define.tricore",
-    "pattern": "^[a-zA-Z_][0-9a-zA-Z_]*:?",
+    "pattern": "\\s*[.$_a-zA-Z][.$_0-9a-zA-Z]*:",
     "testStrings": [
-      "LAB1", "main: ", "LAB_1:"
-    ]
-  },
-  {
-    "name": "variable.label.define.tricore",
-    "pattern": "^\\s+[a-zA-Z_][0-9a-zA-Z_]*:",
-    "testStrings": [
-      "  main: ", " main:", " LAB_1:"
+      "  main:", " main:", " LAB_1:", ".L1:" , "__STACK:", "$TC1:"
     ]
   },
   {
     "name": "variable.label.ref.tricore",
-    "pattern": "\\b[a-zA-Z_][0-9a-zA-Z_]*\\b",
-    "testStrings": ["main", "LAB_1"]
+    "pattern": "\\b[.$_a-zA-Z][.$_0-9a-zA-Z]*\\b",
+    "testStrings": ["main", "LAB_1", ".L1", "__STACK", "$TC1"]
   },
   {
     "name": "variable.label.local.define.tricore",
-    "pattern": "^(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:?",
-    "testStrings": ["1", "22:", "139", "254:"]
-  },
-  {
-    "name": "variable.label.local.define.tricore",
-    "pattern": "^\\s+(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:",
-    "testStrings": [" 1:", " 22:", " 139:", " 254:"]
+    "pattern": "\\s*(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:",
+    "testStrings": [" 1:", " 22:", "139:", "254:"]
   },
   {
     "name": "variable.label.local.ref.tricore",
-    "pattern": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pn]\\b",
-    "testStrings": ["1p", "22n", "139p", "254n"]
+    "pattern": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[bf]\\b",
+    "testStrings": ["1b", "22f", "139b", "254f"]
   },
   {
     "name": "support.function.mnemonic.general-purpose.data-transfer.mov.tricore",
-    "pattern": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|lea)(?-i)\\b",
+    "pattern": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|l[eh]a)(?-i)\\b",
     "testStrings": [
-      "mov", "mov.a", "mov.aa", "mov.d", "mov.u", "movh", "movh.a", "cmov", "cmovn", "lea",
-      "MOV", "MOV.A", "MOV.AA", "MOV.D", "MOV.U", "MOVH", "MOVH.A", "CMOV", "CMOVN", "LEA",
+      "mov", "mov.a", "mov.aa", "mov.d", "mov.u", "movh", "movh.a", "cmov", "cmovn", "lea", "lha",
+      "MOV", "MOV.A", "MOV.AA", "MOV.D", "MOV.U", "MOVH", "MOVH.A", "CMOV", "CMOVN", "LEA", "LHA"
     ]
   },
   {
@@ -272,19 +243,20 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.general-purpose.arithmetic.count-leading.tricore",
-    "pattern": "\\b(?i)(?:cl[osz](?:\\.h)?)(?-i)\\b",
+    "pattern": "\\b(?i)(?:cl[osz](?:\\.h)?|crc(?:n|32(\\.b|[bl]\\.w))|popcnt.w)(?-i)\\b",
     "testStrings": [
-      "clo", "clo.h", "cls", "cls.h", "clz", "clz.h", "CLO", "CLO.H", "CLS", "CLS.H", "CLZ", "CLZ.H"
+      "clo", "clo.h", "cls", "cls.h", "clz", "clz.h", "crc32.b", "crc32b.w", "crc32l.w", "crcn", "popcnt.w",
+      "CLO", "CLO.H", "CLS", "CLS.H", "CLZ", "CLZ.H", "CRC32.B", "CRC32B.W", "CRC32L.W", "CRCN", "POPCNT.W"
     ]
   },
   {
     "name": "support.function.mnemonic.general-purpose.arithmetic.shift.tricore",
-    "pattern": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s))?)(?-i)\\b",
+    "pattern": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s)|uffle)?)(?-i)\\b",
     "testStrings": [
       "sh", "sh.and.t", "sh.andn.t", "sh.eq", "sh.ge", "sh.ge.u", "sh.h", "sh.lt", "sh.lt.u", "sh.nand.t",
-      "sh.ne", "sh.nor.t", "sh.or.t", "sh.orn.t", "sh.xnor.t", "sh.xor.t", "sha", "sha.h", "shas",
+      "sh.ne", "sh.nor.t", "sh.or.t", "sh.orn.t", "sh.xnor.t", "sh.xor.t", "sha", "sha.h", "shas", "shuffle",
       "SH", "SH.AND.T", "SH.ANDN.T", "SH.EQ", "SH.GE", "SH.GE.U", "SH.H", "SH.LT", "SH.LT.U", "SH.NAND.T",
-      "SH.NE", "SH.NOR.T", "SH.OR.T", "SH.ORN.T", "SH.XNOR.T", "SH.XOR.T", "SHA", "SHA.H", "SHAS"
+      "SH.NE", "SH.NOR.T", "SH.OR.T", "SH.ORN.T", "SH.XNOR.T", "SH.XOR.T", "SHA", "SHA.H", "SHAS", "SHUFFLE"
     ]
   },
   {
@@ -366,10 +338,10 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.general-prupose.store.tricore",
-    "pattern": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap\\.w)(?-i)\\b",
+    "pattern": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap(?:msk)?\\.w|cmpswap.w)(?-i)\\b",
     "testStrings": [
-      "st.a", "st.b", "st.d", "st.da", "st.h", "st.q", "st.t", "st.w", "stlcx", "stucx", "swap.w",
-      "ST.A", "ST.B", "ST.D", "ST.DA", "ST.H", "ST.Q", "ST.T", "ST.W", "STLCX", "STUCX", "SWAP.W"
+      "st.a", "st.b", "st.d", "st.da", "st.h", "st.q", "st.t", "st.w", "stlcx", "stucx", "swap.w", "cmpswap.w", "swapmsk.w", 
+      "ST.A", "ST.B", "ST.D", "ST.DA", "ST.H", "ST.Q", "ST.T", "ST.W", "STLCX", "STUCX", "SWAP.W", "CMPSWAP.w", "SWAPMSK.W"
     ]
   },
   {
@@ -381,10 +353,10 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.system.tricore",
-    "pattern": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore)(?-i)\\b",
+    "pattern": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore|wait)(?-i)\\b",
     "testStrings": [
-      "syscall", "dsync", "isync", "enable", "disable", "nop", "debug", "restore",
-      "SYSCALL", "DSYNC", "ISYNC", "ENABLE", "DISABLE", "NOP", "DEBUG", "RESTORE"
+      "syscall", "dsync", "isync", "enable", "disable", "nop", "debug", "restore", "wait",
+      "SYSCALL", "DSYNC", "ISYNC", "ENABLE", "DISABLE", "NOP", "DEBUG", "RESTORE", "WAIT"
     ]
   },
   {
@@ -397,10 +369,10 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.arithmetic.float.tricore",
-    "pattern": "\\b(?i)(?:fto(?:i|q31|u)z?|(?:[iu]|q31)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b",
+    "pattern": "\\b(?i)(?:fto(?:(?:i|q31|u)z?|hp)|(?:[iu]|q31|hp)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b",
     "testStrings": [
-      "cmp.f", "ftoi", "ftoiz", "ftoq31", "ftoq31z", "ftou", "ftouz", "itof", "q31tof", "qseed.f", "utof", "pack", "unpack",
-      "CMP.F", "FTOI", "FTOIZ", "FTOQ31", "FTOQ31Z", "FTOU", "FTOUZ", "ITOF", "Q31TOF", "QSEED.F", "UTOF", "PACK", "UNPACK"
+      "cmp.f", "ftoi", "ftoiz", "ftoq31", "ftoq31z", "ftou", "ftouz", "itof", "q31tof", "qseed.f", "utof", "pack", "unpack", "ftohp", "hptof",
+      "CMP.F", "FTOI", "FTOIZ", "FTOQ31", "FTOQ31Z", "FTOU", "FTOUZ", "ITOF", "Q31TOF", "QSEED.F", "UTOF", "PACK", "UNPACK", "FTOHP", "HPTOF"
     ]
   }
 ]

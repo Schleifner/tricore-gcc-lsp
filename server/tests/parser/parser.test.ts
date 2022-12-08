@@ -1,5 +1,5 @@
 import Parser from '../../src/parser/parser'
-import { tricore_insn_t } from '../../src/parser/instruction';
+import { TRICORE_INSN_T } from '../../src/parser/instruction';
  
 type insFormatTestDatas = {
 	insn: string;
@@ -75,12 +75,12 @@ const testDatas: insFormatTestDatas = [
 
 let ps: Parser;
 beforeAll(async () => {
-	ps = new Parser();
+	ps = new Parser("");
 });
 
 describe.each(testDatas)("Tricore assembly instruction parser", (data) => {
 	const { insn, name, operands, format } = data;
-	const the_insn: tricore_insn_t = {
+	const the_insn: TRICORE_INSN_T = {
 		error: "",
 		name: "",
 		nops: 0,
