@@ -29,7 +29,6 @@ export interface ParserDiagnostic {
 export default class Parser {
   private symbolTable = new Set<string>();
   private undefinedSymbols: [number, string][] = [];
-  private externalSymbols = new Set<string>();
   private diagnosticInfos: ParserDiagnostic[] = [];
   private document: string;
   private lineCounter: number;
@@ -212,7 +211,7 @@ export default class Parser {
         the_insn.error = "bad numeric constant";
         return 0;
       }
-    } else if (str.match(/^[a-zA-Z_][0-9a-zA-Z_]*$/)) {
+    } else if (str.match(/^[._$a-zA-Z][._$0-9a-zA-Z]*$/)) {
       const startPos = src.toLowerCase().indexOf(str);
       the_insn.label.push(src.slice(startPos, startPos + str.length));
     } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
@@ -562,9 +561,6 @@ export default class Parser {
             case DIRECTIVE_T.MULTI_SYMBOL:
               this.getMultiSymbol();
               break;
-            case DIRECTIVE_T.EXTERN_SYMBOL:
-              this.getExternSymbol();
-              break;
             default:
               this.diagnosticInfos.push({
                 line: this.lineCounter,
@@ -609,7 +605,7 @@ export default class Parser {
       this.ignoreRestOfLine();
     }
     this.undefinedSymbols.forEach( ([line, symbol]) => {
-      if (!this.externalSymbols.has(symbol)) {
+      if (!this.symbolTable.has(symbol)) {
         this.diagnosticInfos.push({ line, message: "unknown symbol" });
       }
     });
@@ -619,12 +615,6 @@ export default class Parser {
   getSingleSymbol() {
     let s = this.getSymbol();
     this.symbolTable.add(s);
-    this.ignoreRestOfLine();
-  }
-
-  getExternSymbol() {
-    let s = this.getSymbol();
-    this.externalSymbols.add(s);
     this.ignoreRestOfLine();
   }
 
@@ -750,3 +740,10 @@ function preprocess(str: string): string {
 
   return out;
 }
+
+// import * as fs from "fs";
+// import * as path from "path";
+
+// const asm = fs.readFileSync(path.resolve("../tricoreboot/asm_demo.S"), "utf-8");
+// const ps = new Parser(asm);
+// console.log(ps.parse_a_document());

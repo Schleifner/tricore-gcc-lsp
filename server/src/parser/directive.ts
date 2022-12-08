@@ -5,7 +5,6 @@ export enum DIRECTIVE_T {
   IGNORE,           /* ignore this line     */
   SINGLE_SYMBOL,    /* get single symbol    */
   MULTI_SYMBOL,     /* get multi symbol     */
-  EXTERN_SYMBOL,    /* get extern symbol    */
 }
 
 export const directiveHash = new Map<string, DIRECTIVE_T>([
@@ -36,7 +35,7 @@ export const directiveHash = new Map<string, DIRECTIVE_T>([
   [ "uaxword",           DIRECTIVE_T.IGNORE],
   [ "file",              DIRECTIVE_T.IGNORE],
   [ "loc",               DIRECTIVE_T.IGNORE],
-  [ "extern",            DIRECTIVE_T.EXTERN_SYMBOL],
+  [ "extern",            DIRECTIVE_T.SINGLE_SYMBOL],
   /* elf common directives */
   [ "comm",              DIRECTIVE_T.SINGLE_SYMBOL],
   [ "common",            DIRECTIVE_T.SINGLE_SYMBOL],
