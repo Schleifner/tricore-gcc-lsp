@@ -534,6 +534,10 @@ export default class Parser {
         c = text.charCodeAt(this.pos++);
       } while (isWhiteSpace(c));
 
+      if (this.pos >= text.length) {
+        break;
+      }
+
       if (isNameBeginner(c)) {
         let startPos = this.pos - 1;
         while (isPartOfName(c = text.charCodeAt(this.pos))) { this.pos ++; }
@@ -746,10 +750,3 @@ function preprocess(str: string): string {
 
   return out;
 }
-
-import * as fs from "fs";
-import * as path from "path";
-
-const asm = fs.readFileSync(path.resolve("../tricoreboot/asm_demo.S"), "utf-8");
-const ps = new Parser(asm);
-console.log(ps.parse_a_document());
