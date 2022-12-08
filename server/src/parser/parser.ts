@@ -213,7 +213,8 @@ export default class Parser {
         return 0;
       }
     } else if (str.match(/^[a-zA-Z_][0-9a-zA-Z_]*$/)) {
-      the_insn.label.push(str);
+      const startPos = src.toLowerCase().indexOf(str);
+      the_insn.label.push(src.slice(startPos, startPos + str.length));
     } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
       the_insn.label.push(str.slice(0, -1));
     } else {
@@ -282,6 +283,9 @@ export default class Parser {
     let tokenIndex = 2;
     while(tokenIndex <= tokens.length) {
       const dst = tokens[tokenIndex - 1];
+      if (!dst) {
+        return;
+      }
       if (++numops === MAX_OPS) {
         the_insn.error = "too many operands";
         return;
@@ -565,7 +569,7 @@ export default class Parser {
               break;
           }
         } else {
-          while (text.charCodeAt(this.pos++) !== CharCode.LineFeed) {}
+          while (text.charCodeAt(this.pos++) !== CharCode.LineFeed && this.pos < text.length) {}
           s = text.slice(startPos, this.pos - 1);
           const result = this.md_assemble(s);
           if (result) {
