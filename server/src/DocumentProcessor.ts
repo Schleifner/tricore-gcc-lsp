@@ -10,17 +10,14 @@ export interface ProcessedDocument {
 export type ProcessedDocumentStore = Map<string, ProcessedDocument>;
 
 export default class DocumentProcessor {
-	private parser: Parser;
 
-	constructor(protected readonly ctx: Context) {
-		this.parser = new Parser("");
-	}
+	constructor(protected readonly ctx: Context) { }
 
 	process(document: TextDocument) {
-		const diagnostics = this.parser.parse_a_document();
-		// this.ctx.connection.sendDiagnostics({
-		// 	uri: document.uri,
-		// 	diagnostics
-		// });
+		const parser = new Parser(document.getText());
+		const diagnostics = parser.parse_a_document();
+		const processed: ProcessedDocument = { document };
+		this.ctx.store.set(document.uri, processed);
+		return diagnostics;
 	}
 }

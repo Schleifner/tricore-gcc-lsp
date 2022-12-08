@@ -10,7 +10,6 @@ connection.onInitialize((params) => {
 	const ctx = createContext(
 		connection.console,
 		connection,
-		params.initializationOptions
 	);
 
 	const capabilities = registerProviders(connection, ctx, params.capabilities);
