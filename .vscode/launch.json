@@ -20,10 +20,9 @@
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
 			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
-			"preLaunchTask": {
-				"type": "npm",
-				"script": "watch"
-			}
+      "preLaunchTask": "Watch",
+      "postDebugTask": "Terminate watch",
+      "sourceMaps": true
 		},
 		{
 			"type": "node",
@@ -31,7 +30,9 @@
 			"name": "Attach to Server",
 			"port": 6009,
 			"restart": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+			"timeout": 30000,
+			"outFiles": ["${workspaceRoot}/server/out/**/*.js"],
+			"sourceMaps": true
 		}
 	],
 	"compounds": [
