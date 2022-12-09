@@ -58,29 +58,29 @@
 			"patterns": [
 				{
 					"name": "keyword.control.directive.control.tricore",
-					"match": "\\.(?i)(?:comment|end|fail|include|message|warning|ident)(?-i)\\b"
+					"match": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name||plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.definition.symbol.tricore",
-					"match": "\\.(?i)(?:alias|equ|extern|globa?l|local)(?-i)\\b"
+					"match": "\\.(?i)(?:common(?:\\.s)?|(?:b?l)?comm|l?bit|bpos[bhw]?|local|size|type|weak(?:ref)?|internal|hidden|protected|vtable_(?:entry|inherit)?|eq(?:u(?:iv)?|v)|globa?l|lsym|set|stab[dns]|x(?:def|com|stabs)|tls_common)(?-i)\\b"
 				},
 				{
 
 					"name": "keyword.control.directive.section.tricore",
-					"match": "\\.(?i)(?:org|sdecl|sect(?:ion)?|set|(?:(?:ro)?bss|text|data)|file|size|zero|type|weak)(?-i)\\b"
+					"match": "\\.(?i)(?:(?:ro|s|z|pcp)?data|[sz]?bss|(?:pcp)?text|toc|previous|section\\.s|(?:push|pop|sub)?section|sect(?:\\.s)?|version|struct|org|reloc|dcb(?:\\.[bdlswx])?|dc(?:\\.?[abdlswx])?|ds(?:\\.[bdlpswx])?)(?-i)\\b"
 				},
 				{
 
 					"name": "keyword.control.directive.definition.data.tricore",
-					"match": "\\.(?i)(?:accum|align|ascii(z)?|byte|double|float|string|fract|half|sfract|space|word)(?-i)\\b"
+					"match": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?8|16|32|64)?|zero|align)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.macro.preprocessor.tricore",
-					"match": "\\.(?i)(?:define|dup[acf]?|endm|if|elif|else|endif|exitm|p?macro|undef)(?-i)\\b"
+					"match": "\\.(?i)(?:else(?:c|if)?|end(?:[cmr]|func|if)?|exitm|if(?:[bc]|def|eqs?|g[et]|l[et]|n(?:[bc]|(?:ot)?def|es?))?|incbin|include|ir(?:pc?|epc?)|(?:noalt)?macro|mexit|purgem|rept?)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.hll.tricore",
-					"match": "\\.(?i)(?:calls|compiler_(?:invocation|name|version)|misrac)(?-i)\\b"
+					"match": "\\.(?i)(?:file|loc|func|gnu_attribute|this_gcc_requires_the_gnu_assembler)(?-i)\\b"
 				}
 			]
 		},

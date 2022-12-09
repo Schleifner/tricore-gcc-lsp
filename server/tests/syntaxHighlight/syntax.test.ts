@@ -40,50 +40,70 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "keyword.control.directive.control.tricore",
-    "pattern": "\\.(?i)(?:comment|end|fail|include|message|warning|ident)(?-i)\\b",
+    "pattern": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name||plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b",
     "testStrings": [
-      ".comment", ".end", ".fail", ".include", ".message", ".warning", ".ident",
-      ".COMMENT", ".END", ".FAIL", ".INCLUDE", ".MESSAGE", ".WARNING", ".IDENT"
+      ".code16", ".code32", ".optim", ".noopt", ".indet", ".line", ".symver", ".loc_mark_labels", ".offset", ".abort", ".altmacro", ".debug", ".eject", ".end", ".err", ".error",
+      ".appfile", ".appline", ".file", ".format", ".lflags", ".linefile", ".linkonce", ".list", ".llen", ".mri", "..mri", ".name", ".noformat", ".nolist", ".nopage", ".page",
+      ".plen", ".print", ".psize", ".sbttl", ".spc", ".title", ".ttl", ".xref", ".warning",
+      ".CODE16", ".CODE32", ".OPTIM", ".NOOPT", ".INDET", ".LINE", ".SYMVER", ".LOC_MARK_LABELS", ".OFFSET", ".ABORT", ".ALTMACRO", ".DEBUG", ".EJECT", ".END", ".ERR", ".ERROR",
+      ".APPFILE", ".APPLINE", ".FILE", ".FORMAT", ".LFLAGS", ".LINEFILE", ".LINKONCE", ".LIST", ".LLEN", ".MRI", "..MRI", ".NAME", ".NOFORMAT", ".NOLIST", ".NOPAGE", ".PAGE",
+      ".PLEN", ".PRINT", ".PSIZE", ".SBTTL", ".SPC", ".TITLE", ".TTL", ".XREF", ".WARNING",
     ]
   },
   {
     "name": "keyword.control.directive.definition.symbol.tricore",
-    "pattern": "\\.(?i)(?:alias|equ|extern|globa?l|local)(?-i)\\b",
+    "pattern": "\\.(?i)(?:common(?:\\.s)?|(?:b?l)?comm|l?bit|bpos[bhw]?|local|size|type|weak(?:ref)?|internal|hidden|protected|vtable_(?:entry|inherit)?|eq(?:u(?:iv)?|v)|globa?l|lsym|set|stab[dns]|x(?:def|com|stabs)|tls_common)(?-i)\\b",
     "testStrings": [
-      ".alias", ".equ", ".extern", ".global", ".globl", ".local",
-      ".ALIAS", ".EQU", ".EXTERN", ".GLOBAL", ".GLOBL", ".LOCAL"
+      ".blcomm", ".xcom", ".comm", ".common", ".common.s", ".lcomm", ".tls_common", ".bit", ".lbit", ".bpos", ".bposb", ".bposh", ".bposw", ".local", ".size", ".type", ".weak",
+      ".internal", ".hidden", ".protected", ".vtable_entry", ".vtable_inherit", ".equ", ".equiv", ".eqv", ".global", ".globl", ".lsym", ".set", ".stabd", ".stabn", ".stabs",
+      ".xdef", ".xstabs", ".weakref",
+      ".BLCOMM", ".XCOM", ".COMM", ".COMMON", ".COMMON.S", ".LCOMM", ".TLS_COMMON", ".BIT", ".LBIT", ".BPOS", ".BPOSB", ".BPOSH", ".BPOSW", ".LOCAL", ".SIZE", ".TYPE", ".WEAK",
+      ".INTERNAL", ".HIDDEN", ".PROTECTED", ".VTABLE_ENTRY", ".VTABLE_INHERIT", ".EQU", ".EQUIV", ".EQV", ".GLOBAL", ".GLOBL", ".LSYM", ".SET", ".STABD", ".STABN", ".STABS",
+      ".XDEF", ".XSTABS", ".WEAKREF",
     ]
   },
   {
     "name": "keyword.control.directive.section.tricore",
-    "pattern": "\\.(?i)(?:org|sdecl|sect(?:ion)?|set|(?:ro)?data|text|bss|file|size|zero|type|weak)(?-i)\\b",
+    "pattern": "\\.(?i)(?:(?:ro|s|z|pcp)?data|[sz]?bss|(?:pcp)?text|toc|previous|section\\.s|(?:push|pop|sub)?section|sect(?:\\.s)?|version|struct|org|reloc|dcb(?:\\.[bdlswx])?|dc(?:\\.?[abdlswx])?|ds(?:\\.[bdlpswx])?)(?-i)\\b",
     "testStrings": [
-      ".org", ".sdecl", ".sect", ".section", ".set", ".bss", ".text", ".data", ".rodata", ".file", ".size", ".zero", ".type", ".weak",
-      ".ORG", ".SDECL", ".SECT", ".SECTION", ".SET", ".BSS", ".TEXT", ".DATA", ".RODATA", ".FILE", ".SIZE", ".ZERO", ".TYPE", ".WEAK",
+      ".toc", ".rodata", ".sdata", ".sbss", ".zdata", ".zbss", ".pcptext", ".pcpdata", ".previous", ".section", ".section.s", ".sect", ".sect.s", ".pushsection", ".popsection",
+      ".version", ".subsection", ".struct", ".text", ".data", ".bss", ".dc", ".dc.a", ".dc.b", ".dc.l", ".dc.s", ".dc.w", ".dc.x", ".dcb", ".dcb.b", ".dcb.d", ".dcb.l", ".dcb.s",
+      ".dcb.w", ".dcb.x", ".ds", ".ds.b", ".ds.d", ".ds.l", ".ds.p", ".ds.s", ".ds.w", ".ds.x", ".org", ".reloc",
+      ".TOC", ".RODATA", ".SDATA", ".SBSS", ".ZDATA", ".ZBSS", ".PCPTEXT", ".PCPDATA", ".PREVIOUS", ".SECTION", ".SECTION.S", ".SECT", ".SECT.S", ".PUSHSECTION", ".POPSECTION",
+      ".VERSION", ".SUBSECTION", ".STRUCT", ".TEXT", ".DATA", ".BSS", ".DC", ".DC.A", ".DC.B", ".DC.L", ".DC.S", ".DC.W", ".DC.X", ".DCB", ".DCB.B", ".DCB.D", ".DCB.L", ".DCB.S",
+      ".DCB.W", ".DCB.X", ".DS", ".DS.B", ".DS.D", ".DS.L", ".DS.P", ".DS.S", ".DS.W", ".DS.X", ".ORG", ".RELOC",
     ]
   },
   {
     "name": "keyword.control.directive.definition.data.tricore",
-    "pattern": "\\.(?i)(?:accum|align|asciiz?|byte|double|float|string|fract|half|sfract|space|word)(?-i)\\b",
+    "pattern": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?8|16|32|64)?|zero|align)(?-i)\\b",
     "testStrings": [
-      ".accum", ".align", ".ascii", ".asciiz", ".byte", ".double", ".float", ".string", ".fract", ".half", ".sfract", ".space", ".word",
-      ".ACCUM", ".ALIGN", ".ASCII", ".ASCIIZ", ".BYTE", ".DOUBLE", ".FLOAT", ".STRING", ".FRACT", ".HALF", ".SFRACT", ".SPACE", ".WORD"
+      ".word", ".pcpinitword", ".uahalf", ".uaword", ".uaxword", ".2byte", ".4byte", ".8byte", ".align", ".ascii", ".asciz", ".balign", ".balignw", ".balignl", ".byte", ".double",
+      ".fill", ".float", ".hword", ".int", ".long", ".octa", ".p2align", ".p2alignw", ".p2alignl", ".quad", ".rva", ".short", ".single", ".skip", ".sleb128", ".string", ".string8",
+      ".string16", ".string32", ".string64", ".uleb128", ".zero",
+      ".WORD", ".PCPINITWORD", ".UAHALF", ".UAWORD", ".UAXWORD", ".2BYTE", ".4BYTE", ".8BYTE", ".ALIGN", ".ASCII", ".ASCIZ", ".BALIGN", ".BALIGNW", ".BALIGNL", ".BYTE", ".DOUBLE",
+      ".FILL", ".FLOAT", ".HWORD", ".INT", ".LONG", ".OCTA", ".P2ALIGN", ".P2ALIGNW", ".P2ALIGNL", ".QUAD", ".RVA", ".SHORT", ".SINGLE", ".SKIP", ".SLEB128", ".STRING", ".STRING8",
+      ".STRING16", ".STRING32", ".STRING64", ".ULEB128", ".ZERO",
     ]
   },
   {
     "name": "keyword.control.directive.macro.preprocessor.tricore",
-    "pattern": "\\.(?i)(?:define|dup[acf]?|endm|if|elif|else|endif|exitm|p?macro|undef)(?-i)\\b",
+    "pattern": "\\.(?i)(?:else(?:c|if)?|end(?:[cmr]|func|if)?|exitm|if(?:[bc]|def|eqs?|g[et]|l[et]|n(?:[bc]|(?:ot)?def|es?))?|incbin|include|ir(?:pc?|epc?)|(?:noalt)?macro|mexit|purgem|rept?)(?-i)\\b",
     "testStrings": [
-      ".define", ".dup", ".dupa", ".dupc", ".dupf", ".endm", ".if", ".elif", ".else", ".endif", ".exitm", ".macro", ".pmacro", ".undef",
-      ".DEFINE", ".DUP", ".DUPA", ".DUPC", ".DUPF", ".ENDM", ".IF", ".ELIF", ".ELSE", ".ENDIF", ".EXITM", ".MACRO", ".PMACRO", ".UNDEF"
+      ".else", ".elsec", ".elseif", ".endc", ".endfunc", ".endif", ".endm", ".endr", ".exitm", ".if", ".ifb", ".ifc", ".ifdef", ".ifeq", ".ifeqs", ".ifge", ".ifle", ".iflt",
+      ".ifnb", ".ifnc", ".ifndef", ".ifne", ".ifnes", ".ifnotdef", ".incbin", ".include", ".irp", ".irep", ".irpc", ".irepc", ".macro", ".mexit", ".noaltmacro", ".purgem",
+      ".rep", ".rept",
+      ".ELSE", ".ELSEC", ".ELSEIF", ".ENDC", ".ENDFUNC", ".ENDIF", ".ENDM", ".ENDR", ".EXITM", ".IF", ".IFB", ".IFC", ".IFDEF", ".IFEQ", ".IFEQS", ".IFGE", ".IFLE", ".IFLT",
+      ".IFNB", ".IFNC", ".IFNDEF", ".IFNE", ".IFNES", ".IFNOTDEF", ".INCBIN", ".INCLUDE", ".IRP", ".IREP", ".IRPC", ".IREPC", ".MACRO", ".MEXIT", ".NOALTMACRO", ".PURGEM",
+      ".REP", ".REPT",
     ]
   },
   {
     "name": "keyword.control.directive.hll.tricore",
-    "pattern": "\\.(?i)(?:calls|compiler_(?:invocation|name|version)|misrac)(?-i)\\b",
+    "pattern": "\\.(?i)(?:file|loc|func|gnu_attribute|this_gcc_requires_the_gnu_assembler)(?-i)\\b",
     "testStrings": [
-      ".calls", ".compiler_invocation", ".compiler_name", ".compiler_version", ".misrac",
-      ".CALLS", ".COMPILER_INVOCATION", ".COMPILER_NAME", ".COMPILER_VERSION", ".MISRAC"
+      ".file", ".loc", ".func", ".gnu_attribute", ".this_gcc_requires_the_gnu_assembler",
+      ".FILE", ".LOC", ".FUNC", ".GNU_ATTRIBUTE", ".THIS_GCC_REQUIRES_THE_GNU_ASSEMBLER",
     ]
   },
   {
