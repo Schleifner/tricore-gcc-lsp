@@ -21,7 +21,7 @@ export default class TextDocumentSyncProvider implements Provider {
 			return {
 				range: {
 					start: { line, character: 0 },
-					end: { line, character: 0 }
+					end: { line: line + 1, character: 0 }
 				},
 				message,
 				severity: DiagnosticSeverity.Error,
