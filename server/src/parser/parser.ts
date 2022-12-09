@@ -740,10 +740,3 @@ function preprocess(str: string): string {
 
   return out;
 }
-
-// import * as fs from "fs";
-// import * as path from "path";
-
-// const asm = fs.readFileSync(path.resolve("../tricoreboot/asm_demo.S"), "utf-8");
-// const ps = new Parser(asm);
-// console.log(ps.parse_a_document());
