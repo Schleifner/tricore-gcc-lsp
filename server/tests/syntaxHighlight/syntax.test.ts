@@ -40,13 +40,13 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "keyword.control.directive.control.tricore",
-    "pattern": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name||plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b",
+    "pattern": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name|plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b",
     "testStrings": [
-      ".code16", ".code32", ".optim", ".noopt", ".indet", ".line", ".symver", ".loc_mark_labels", ".offset", ".abort", ".altmacro", ".debug", ".eject", ".end", ".err", ".error",
-      ".appfile", ".appline", ".file", ".format", ".lflags", ".linefile", ".linkonce", ".list", ".llen", ".mri", "..mri", ".name", ".noformat", ".nolist", ".nopage", ".page",
+      ".code16", ".code32", ".optim", ".noopt", ".ident", ".line", ".symver", ".loc_mark_labels", ".offset", ".abort", ".altmacro", ".debug", ".eject", ".end", ".err", ".error",
+      ".appfile", ".appline", ".fail", ".format", ".lflags", ".linefile", ".linkonce", ".list", ".llen", ".mri", "..mri", ".name", ".noformat", ".nolist", ".nopage", ".page",
       ".plen", ".print", ".psize", ".sbttl", ".spc", ".title", ".ttl", ".xref", ".warning",
-      ".CODE16", ".CODE32", ".OPTIM", ".NOOPT", ".INDET", ".LINE", ".SYMVER", ".LOC_MARK_LABELS", ".OFFSET", ".ABORT", ".ALTMACRO", ".DEBUG", ".EJECT", ".END", ".ERR", ".ERROR",
-      ".APPFILE", ".APPLINE", ".FILE", ".FORMAT", ".LFLAGS", ".LINEFILE", ".LINKONCE", ".LIST", ".LLEN", ".MRI", "..MRI", ".NAME", ".NOFORMAT", ".NOLIST", ".NOPAGE", ".PAGE",
+      ".CODE16", ".CODE32", ".OPTIM", ".NOOPT", ".IDENT", ".LINE", ".SYMVER", ".LOC_MARK_LABELS", ".OFFSET", ".ABORT", ".ALTMACRO", ".DEBUG", ".EJECT", ".END", ".ERR", ".ERROR",
+      ".APPFILE", ".APPLINE", ".FAIL", ".FORMAT", ".LFLAGS", ".LINEFILE", ".LINKONCE", ".LIST", ".LLEN", ".MRI", "..MRI", ".NAME", ".NOFORMAT", ".NOLIST", ".NOPAGE", ".PAGE",
       ".PLEN", ".PRINT", ".PSIZE", ".SBTTL", ".SPC", ".TITLE", ".TTL", ".XREF", ".WARNING",
     ]
   },
@@ -76,7 +76,7 @@ const testDatas: syntaxTestDatas = [
   },
   {
     "name": "keyword.control.directive.definition.data.tricore",
-    "pattern": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?8|16|32|64)?|zero|align)(?-i)\\b",
+    "pattern": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?:pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?:8|16|32|64)?|zero|align)(?-i)\\b",
     "testStrings": [
       ".word", ".pcpinitword", ".uahalf", ".uaword", ".uaxword", ".2byte", ".4byte", ".8byte", ".align", ".ascii", ".asciz", ".balign", ".balignw", ".balignl", ".byte", ".double",
       ".fill", ".float", ".hword", ".int", ".long", ".octa", ".p2align", ".p2alignw", ".p2alignl", ".quad", ".rva", ".short", ".single", ".skip", ".sleb128", ".string", ".string8",

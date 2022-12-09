@@ -58,7 +58,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.directive.control.tricore",
-					"match": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name||plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b"
+					"match": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name|plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.definition.symbol.tricore",
@@ -72,7 +72,7 @@
 				{
 
 					"name": "keyword.control.directive.definition.data.tricore",
-					"match": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?8|16|32|64)?|zero|align)(?-i)\\b"
+					"match": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?:pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?:8|16|32|64)?|zero|align)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.macro.preprocessor.tricore",
