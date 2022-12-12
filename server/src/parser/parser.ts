@@ -6,6 +6,7 @@ import {
   TRICORE_OPCODE, 
   operandMatrix, 
   opcodeHash, 
+  sfrHash,
 } from "./instruction";
 
 import {
@@ -212,8 +213,12 @@ export default class Parser {
         return 0;
       }
     } else if (str.match(/^[._$a-zA-Z][._$0-9a-zA-Z]*$/)) {
-      const startPos = src.toLowerCase().indexOf(str);
-      the_insn.label.push(src.slice(startPos, startPos + str.length));
+      if (sfrHash.has(str)) {
+        numeric = Number(sfrHash.get(str));
+      } else {
+        const startPos = src.toLowerCase().indexOf(str);
+        the_insn.label.push(src.slice(startPos, startPos + str.length));
+      }
     } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
       the_insn.label.push(str.slice(0, -1));
     } else {

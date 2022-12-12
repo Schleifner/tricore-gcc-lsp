@@ -111,6 +111,61 @@ export interface TRICORE_INSN_T {
   needs_prefix: number;
 };
 
+/* Kinds of operands for TriCore instructions:
+   d  A simple data register (%d0-%d15).
+   g  A simple data register with an 'l' suffix.
+   G  A simple data register with an 'u' suffix.
+   -  A simple data register with an 'll' suffix.
+   +  A simple data register with an 'uu' suffix.
+   l  A simple data register with an 'lu' suffix.
+   L  A simple data register with an 'ul' suffix.
+   D  An extended data register (d-register pair; %e0, %e2, ..., %e14).
+   i  Implicit data register %d15.
+   a  A simple address register (%a0-%a15).
+   A  An extended address register (a-register pair; %a0, %a2, ..., %a14).
+   I  Implicit address register %a15.
+   P  Implicit stack register %a10.
+   c  A core register ($psw, $pc etc.).
+   1  A 1-bit zero-extended constant.
+   2  A 2-bit zero-extended constant.
+   3  A 3-bit zero-extended constant.
+   4  A 4-bit sign-extended constant.
+   f  A 4-bit zero-extended constant.
+   5  A 5-bit zero-extended constant.
+   F  A 5-bit sign-extended constant.
+   v  A 5-bit zero-extended constant with bit 0 == 0 (=> 4bit/2).
+   6  A 6-bit zero-extended constant with bits 0,1 == 0 (=> 4bit/4).
+   8  A 8-bit zero-extended constant.
+   9  A 9-bit sign-extended constant.
+   n  A 9-bit zero-extended constant.
+   h  A 10-bit zero-extended constant.
+   k  A 10-bit zero-extended constant with bits 0,1 == 0 (=> 8bit/4).
+   0  A 10-bit sign-extended constant.
+   q  A 15-bit zero-extended constant.
+   w  A 16-bit sign-extended constant.
+   W  A 16-bit zero-extended constant.
+   M  A 32-bit memory address.
+   m  A 4-bit PC-relative offset (zero-extended, /2).
+   r  A 4-bit PC-relative offset (one-extended, /2).
+   x  A 5-bit PC-relative offset (zero-extended, /2).
+   Z  A 5-bit PC-relative offset 0x1x (zero-extended, /2).
+   R  A 8-bit PC-relative offset (sign-extended, /2).
+   o  A 15-bit PC-relative offset (sign-extended, /2).
+   O  A 24-bit PC-relative offset (sign-extended, /2).
+   t  A 18-bit absolute memory address (segmented).
+   T  A 24-bit absolute memory address (segmented, /2).
+   V  A 18-bit absolute memory address (lower 14-bit zero).
+   U  A symbol whose value isn't known yet.
+   @  Register indirect ([%an]).
+   &  SP indirect ([%sp] or [%a10]).
+   <  Pre-incremented register indirect ([+%an]).
+   >  Post-incremented register indirect ([%an+]).
+   *  Circular address mode ([%An+c]).
+   #  Bitreverse address mode ([%An+r]).
+   ?  Indexed address mode ([%An+i]).
+   S  Implicit base ([%a15]).
+*/
+
 export const operandMatrix = new Map<string, string>([
   [ "d", "di" ],
   [ "g", "g" ],
@@ -163,6 +218,185 @@ export const operandMatrix = new Map<string, string>([
   [ "#", "#" ],
   [ "?", "?" ],
   [ "S", "S" ],
+]);
+
+export const sfrHash = new Map<string, number>([
+  ["$mmucon",                 0x8000],
+  ["$mmu_con",                0x8000],
+  ["$asi",                    0x8004],
+  ["$mmu_asi",                0x8004],
+  ["$mmuid",                  0x8008],
+  ["$mmu_id",                 0x8008],
+  ["$tva",                    0x800c],
+  ["$mmu_tva",                0x800c],
+  ["$tpa",                    0x8010],
+  ["$mmu_tpa",                0x8010],
+  ["$tpx",                    0x8014],
+  ["$mmu_tpx",                0x8014],
+  ["$tfa",                    0x8018],
+  ["$mmu_tfa",                0x8018],
+
+  ["$pma0",                   0x801c],
+  ["$mmu_tfas",               0x8020],
+
+  ["$dcon2",                  0x9000],
+  ["$bmacon",                 0x9004],
+  ["$dcon1",                  0x9008],
+  ["$smacon",                 0x900c],
+  ["$dstr",                   0x9010],
+  ["$datr",                   0x9018],
+  ["$deadd",                  0x901c],
+  ["$diear",                  0x9020],
+  ["$dietr",                  0x9024],
+  ["$ccdier",                 0x9028],
+  ["$dcon0",                  0x9040],
+  ["$miecon",                 0x9044],
+  ["$pstr",                   0x9200],
+  ["$pcon1",                  0x9204],
+  ["$pcon2",                  0x9208],
+  ["$pcon0",                  0x920c],
+  ["$piear",                  0x9210],
+  ["$pietr",                  0x9214],
+  ["$compat",                 0x9400],
+
+  ["$fpu_trap_con",           0xa000],
+  ["$fpu_trap_pc",            0xa004],
+  ["$fpu_trap_opc",           0xa008],
+  ["$fpu_trap_src1",          0xa010],
+  ["$fpu_trap_src2",          0xa014],
+  ["$fpu_trap_src3",          0xa018],
+
+  ["$dpr0_l",                 0xc000],
+  ["$dpr0_u",                 0xc004],
+  ["$dpr1_l",                 0xc008],
+  ["$dpr1_u",                 0xc00c],
+  ["$dpr2_l",                 0xc010],
+  ["$dpr2_u",                 0xc014],
+  ["$dpr3_l",                 0xc018],
+  ["$dpr3_u",                 0xc01c],
+  ["$dpr4_l",                 0xc020],
+  ["$dpr4_u",                 0xc024],
+  ["$dpr5_l",                 0xc028],
+  ["$dpr5_u",                 0xc02c],
+  ["$dpr6_l",                 0xc030],
+  ["$dpr6_u",                 0xc034],
+  ["$dpr7_l",                 0xc038],
+  ["$dpr7_u",                 0xc03c],
+  ["$dpr8_l",                 0xc040],
+  ["$dpr8_u",                 0xc044],
+  ["$dpr9_l",                 0xc048],
+  ["$dpr9_u",                 0xc04c],
+  ["$dpr10_l",                0xc050],
+  ["$dpr10_u",                0xc054],
+  ["$dpr11_l",                0xc058],
+  ["$dpr11_u",                0xc05c],
+  ["$dpr12_l",                0xc060],
+  ["$dpr12_u",                0xc064],
+  ["$dpr13_l",                0xc068],
+  ["$dpr13_u",                0xc06c],
+  ["$dpr14_l",                0xc070],
+  ["$dpr14_u",                0xc074],
+  ["$dpr15_l",                0xc078],
+  ["$dpr15_u",                0xc07c],
+
+  ["$cpr0_l",                 0xd000],
+  ["$cpr0_u",                 0xd004],
+  ["$cpr1_l",                 0xd008],
+  ["$cpr1_u",                 0xd00c],
+  ["$cpr2_l",                 0xd010],
+  ["$cpr2_u",                 0xd014],
+  ["$cpr3_l",                 0xd018],
+  ["$cpr3_u",                 0xd01c],
+  ["$cpr4_l",                 0xd020],
+  ["$cpr4_u",                 0xd024],
+  ["$cpr5_l",                 0xd028],
+  ["$cpr5_u",                 0xd02c],
+  ["$cpr6_l",                 0xd030],
+  ["$cpr6_u",                 0xd034],
+  ["$cpr7_l",                 0xd038],
+  ["$cpr7_u",                 0xd03c],
+  ["$cpr8_l",                 0xd040],
+  ["$cpr8_u",                 0xd044],
+  ["$cpr9_l",                 0xd048],
+  ["$cpr9_u",                 0xd04c],
+  ["$cpr10_l",                0xd050],
+  ["$cpr10_u",                0xd054],
+  ["$cpr11_l",                0xd058],
+  ["$cpr11_u",                0xd05c],
+  ["$cpr12_l",                0xd060],
+  ["$cpr12_u",                0xd064],
+  ["$cpr13_l",                0xd068],
+  ["$cpr13_u",                0xd06c],
+  ["$cpr14_l",                0xd070],
+  ["$cpr14_u",                0xd074],
+  ["$cpr15_l",                0xd078],
+  ["$cpr15_u",                0xd07c],
+
+  ["$cpxe_0",                 0xe000],
+  ["$cpxe_1",                 0xe004],
+  ["$cpxe_2",                 0xe008],
+  ["$cpxe_3",                 0xe00c],
+
+  ["$cpxe_4",                 0xe040],
+  ["$cpxe_5",                 0xe044],
+  ["$cpxe_6",                 0xe048],
+  ["$cpxe_7",                 0xe04c],
+
+  ["$dpre_0",                 0xe010],
+  ["$dpre_1",                 0xe014],
+  ["$dpre_2",                 0xe018],
+  ["$dpre_3",                 0xe01c],
+
+  ["$dpre_4",                 0xe050],
+  ["$dpre_5",                 0xe054],
+  ["$dpre_6",                 0xe058],
+  ["$dpre_7",                 0xe05c],
+
+  ["$dpwe_0",                 0xe020],
+  ["$dpwe_1",                 0xe024],
+  ["$dpwe_2",                 0xe028],
+  ["$dpwe_3",                 0xe02c],
+
+  ["$dpwe_4",                 0xe060],
+  ["$dpwe_5",                 0xe064],
+  ["$dpwe_6",                 0xe068],
+  ["$dpwe_7",                 0xe06c],
+
+  ["$tps_con",                0xe400],
+  ["$tps_timer0",             0xe404],
+  ["$tps_timer1",             0xe408],
+  ["$tps_timer2",             0xe40c],
+
+  ["$tps_extim_entry_cval",   0xe440],
+  ["$tps_extim_entry_lval",   0xe444],
+  ["$tps_extim_exit_cval",    0xe448],
+  ["$tps_extim_exit_lval",    0xe44c],
+  ["$tps_extim_class_en",     0xe450],
+  ["$tps_extim_stat",         0xe454],
+  ["$tps_extim_fcx",          0xe458],
+
+  ["$dbgsr",                  0xfd00],
+  ["$gprwb",                  0xfd04],
+  ["$exevt",                  0xfd08],
+  ["$crevt",                  0xfd0c],
+  ["$swevt",                  0xfd10],
+  ["$tr0evt",                 0xfd20],
+  ["$tr1evt",                 0xfd24],
+
+  ["$pcxi",                   0xfe00],
+  ["$psw",                    0xfe04],
+  ["$pc",                     0xfe08],
+  ["$syscon",                 0xfe14],
+  ["$cpuid",                  0xfe18],
+  ["$cpu_id",                 0xfe18],
+  ["$core_id",                0xfe1c],
+  ["$biv",                    0xfe20],
+  ["$btv",                    0xfe24],
+  ["$isp",                    0xfe28],
+  ["$icr",                    0xfe2c],
+  ["$fcx",                    0xfe38],
+  ["$lcx",                    0xfe3c],
+
 ]);
 
 const tricoreOpcodes: TRICORE_OPCODE[] = [
