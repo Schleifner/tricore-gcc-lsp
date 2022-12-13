@@ -274,7 +274,7 @@ export default class Parser {
 
   tricore_ip(str: string, the_insn: TRICORE_INSN_T) {
     let numops = -1, mode = 0;
-    const insnline = str.toLowerCase();
+    const insnline = str.trimEnd().toLowerCase();
     const tokens = insnline.split(/\s|,/);
 
     let opcode: TRICORE_OPCODE[] | undefined;
@@ -571,11 +571,12 @@ export default class Parser {
                 line: this.lineCounter,
                 message: "unknown pseudo-op"
               });
+              this.ignoreRestOfLine();
               break;
           }
         } else {
           while (text.charCodeAt(this.pos++) !== CharCode.LineFeed && this.pos < text.length) {}
-          s = text.slice(startPos, this.pos - 1);
+          s = text.slice(startPos, this.pos === text.length ? this.pos : this.pos - 1);
           const result = this.md_assemble(s);
           if (result) {
             this.diagnosticInfos.push({ line: this.lineCounter, message: result });
@@ -652,6 +653,11 @@ export default class Parser {
 }
 
 function preprocess(str: string): string {
+  /*state 0: begining of normal line
+    1: After first whitespace on line (flush more white)
+    2: After first non-white on line (keep 1 white)
+    3: After second white on line (into operands) (flush white)
+  */
   let pos = 0, out = "", state = 0, end = str.length;
 
   while (pos < end) {
@@ -729,6 +735,12 @@ function preprocess(str: string): string {
       case CharCode.LineFeed: {
         out += String.fromCharCode(c);
         state = 0;
+        ++pos;
+        break;
+      }
+      case CharCode.Colon: {
+        out += String.fromCharCode(c);
+        if (state !== 3) state = 1;
         ++pos;
         break;
       }
