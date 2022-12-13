@@ -652,7 +652,7 @@ export default class Parser {
 
 }
 
-function preprocess(str: string): string {
+export function preprocess(str: string): string {
   /*state 0: begining of normal line
     1: After first whitespace on line (flush more white)
     2: After first non-white on line (keep 1 white)
