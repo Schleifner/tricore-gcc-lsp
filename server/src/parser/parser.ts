@@ -35,13 +35,13 @@ export default class Parser {
   private lineCounter: number;
   private pos: number;
 
-  constructor(input: string) {
-    this.document = preprocess(input);
+  constructor() {
+    this.document = "";
     this.lineCounter = 0;
     this.pos = 0;
   }
 
-  private read_regno(str: string): { regno: number; offset: number; error?: string } {
+  read_regno(str: string): { regno: number; offset: number; error?: string } {
     let regno = 0, digits_seen = 0;
     
     while (isDecimal(str.charCodeAt(digits_seen))) {
@@ -57,7 +57,7 @@ export default class Parser {
     return { regno, offset: digits_seen };
   }
 
-  private read_regsuffix(str: string): { regsuffix: string, offset: number } {
+  read_regsuffix(str: string): { regsuffix: string, offset: number } {
     let chars_seen= 0;
     if (str.charCodeAt(chars_seen) === CharCode.l) {
       return (str.charCodeAt(chars_seen + 1) === CharCode.l) ? { regsuffix: "-", offset: 2 }
@@ -71,7 +71,7 @@ export default class Parser {
     return { regsuffix: "d", offset: 0 };
   }
 
-  private classify_numeric(num: number): string {
+  classify_numeric(num: number): string {
     if (num < 0) {
       if (num >= -8) {
         return "4";
@@ -154,7 +154,7 @@ export default class Parser {
     return "M";
   }
 
-  private get_expression(the_insn: TRICORE_INSN_T, src: string, str: string, opnr: number) {
+  get_expression(the_insn: TRICORE_INSN_T, src: string, str: string, opnr: number) {
     let bitposFlag = false, prefix: PREFIX_T = PREFIX_T.PREFIX_NONE;
     let colonIndex = str.indexOf(":");
     if (colonIndex !== -1) {
@@ -177,7 +177,7 @@ export default class Parser {
     }
 
     str = str.slice(++colonIndex);
-    if (src.slice(src.toLowerCase().indexOf(str) + 1).indexOf("_GLOBAL_OFFSET_TABLE_") != -1) {
+    if (src.slice(src.toLowerCase().indexOf(str)).indexOf("_GLOBAL_OFFSET_TABLE_") != -1) {
       switch (prefix) {
         case PREFIX_T.PREFIX_NONE:
           prefix = PREFIX_T.PREFIX_GOTPC;
@@ -190,11 +190,6 @@ export default class Parser {
           break;
         case PREFIX_T.PREFIX_UP:
           prefix = PREFIX_T.PREFIX_GOTPCUP;
-          break;
-        case PREFIX_T.PREFIX_GOTPC:
-        case PREFIX_T.PREFIX_GOTPCHI:
-        case PREFIX_T.PREFIX_GOTPCLO:
-        case PREFIX_T.PREFIX_GOTPCUP:
           break;
 
         default:
@@ -219,9 +214,10 @@ export default class Parser {
         const startPos = src.toLowerCase().indexOf(str);
         the_insn.label.push(src.slice(startPos, startPos + str.length));
       }
-    } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pnbf]/)) {
+    } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[bf]/)) {
       the_insn.label.push(str.slice(0, -1));
     } else {
+      return 0;
       // more complex expression, TO DO
     }
 
@@ -466,10 +462,7 @@ export default class Parser {
 
   find_opcode(the_insn: TRICORE_INSN_T) {
     const ops = opcodeHash.get(the_insn.name);
-    if (!ops) {
-      return undefined;
-    }
-    for (const op of ops) {
+    for (const op of ops!) {
       if (op.nr_operands !== the_insn.nops || (!op.len32 && the_insn.needs_prefix)) continue;
       
       let index: number;
@@ -490,7 +483,7 @@ export default class Parser {
     return undefined;
   }
 
-  private md_assemble(oneLineAsm: string): string | undefined {
+  md_assemble(oneLineAsm: string): string | undefined {
     const the_insn: TRICORE_INSN_T = {
       error: "",
       name: "",
@@ -507,13 +500,14 @@ export default class Parser {
     if (the_insn.error) {
       return the_insn.error;
     }
-    if (this.find_opcode(the_insn) === undefined) {
+    let insn = this.find_opcode(the_insn);
+    if (insn === undefined) {
       return "opcode/operand mismatch: " + oneLineAsm;
     }
 
-    for (let index = 0; index < the_insn.nops; ++index) {
-      if ("mxrRoO".indexOf(the_insn.ops[index]) >= 0 && the_insn.is_odd[index]) {
-        return "displacement is not even;";
+    for (let index = 0; index < insn.nr_operands; ++index) {
+      if ("mxrRoO".indexOf(insn.args[index]) >= 0 && the_insn.is_odd[index]) {
+        return "displacement is not even";
       }
     }
 
@@ -528,8 +522,9 @@ export default class Parser {
     return;
   }
 
-  parse_a_document() {
-    const text = this.document;
+  parse_a_document(input: string) {
+    const text = preprocess(input);
+    this.document = text;
     this.lineCounter = 0;
     this.pos = 0;
     let c = 0, s = "";
@@ -569,7 +564,7 @@ export default class Parser {
             default:
               this.diagnosticInfos.push({
                 line: this.lineCounter,
-                message: "unknown pseudo-op"
+                message: "unknown pseudo-op: " + s.slice(1)
               });
               this.ignoreRestOfLine();
               break;
@@ -757,3 +752,10 @@ export function preprocess(str: string): string {
 
   return out;
 }
+
+// import * as fs from "fs";
+// import * as path from "path";
+
+// const asm = fs.readFileSync(path.resolve("../tricoreboot/c_demo.s"), "utf-8");
+// const ps = new Parser();
+// console.log(ps.parse_a_document(asm));

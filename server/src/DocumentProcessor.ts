@@ -14,8 +14,8 @@ export default class DocumentProcessor {
 	constructor(protected readonly ctx: Context) { }
 
 	process(document: TextDocument) {
-		const parser = new Parser(document.getText());
-		const diagnostics = parser.parse_a_document();
+		const parser = new Parser();
+		const diagnostics = parser.parse_a_document(document.getText());
 		const processed: ProcessedDocument = { document };
 		this.ctx.store.set(document.uri, processed);
 		return diagnostics;
