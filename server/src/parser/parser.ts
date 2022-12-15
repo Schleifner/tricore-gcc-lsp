@@ -751,10 +751,3 @@ export function preprocess(str: string): string {
 
   return out;
 }
-
-import * as fs from "fs";
-import * as path from "path";
-
-const asm = fs.readFileSync(path.resolve("../tricoreboot/c_demo.s"), "utf-8");
-const ps = new Parser();
-console.log(ps.parse_a_document(asm));
