@@ -217,7 +217,6 @@ export default class Parser {
     } else if (str.match(/(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[bf]/)) {
       the_insn.label.push(str.slice(0, -1));
     } else {
-      return 0;
       // more complex expression, TO DO
     }
 
@@ -564,7 +563,7 @@ export default class Parser {
             default:
               this.diagnosticInfos.push({
                 line: this.lineCounter,
-                message: "unknown pseudo-op: " + s.slice(1)
+                message: "unknown pseudo-op: " + s
               });
               this.ignoreRestOfLine();
               break;
@@ -753,9 +752,9 @@ export function preprocess(str: string): string {
   return out;
 }
 
-// import * as fs from "fs";
-// import * as path from "path";
+import * as fs from "fs";
+import * as path from "path";
 
-// const asm = fs.readFileSync(path.resolve("../tricoreboot/c_demo.s"), "utf-8");
-// const ps = new Parser();
-// console.log(ps.parse_a_document(asm));
+const asm = fs.readFileSync(path.resolve("../tricoreboot/c_demo.s"), "utf-8");
+const ps = new Parser();
+console.log(ps.parse_a_document(asm));

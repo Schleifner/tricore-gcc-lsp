@@ -1,6 +1,8 @@
 import Parser from '../../src/parser/parser'
 import { TRICORE_INSN_T } from '../../src/parser/instruction';
- 
+import * as fs from "fs";
+import * as path from "path"; 
+
 type insFormatTestDatas = {
 	insn: string;
 	name: string;
@@ -84,12 +86,8 @@ const _insFormatTestDatas: insFormatTestDatas = [
 	{ insn: "mov %d3,1020", 						  name: "mov",   		operands: "dw",   	format: 14  },
 ];
 
-let ps: Parser;
-beforeAll(async () => {
-	ps = new Parser();
-});
-
 describe.each(_insFormatTestDatas)("#md_assemble #tricore_ip #find_opcode positive test", (data) => {
+	const ps = new Parser();
 	const { insn, name, operands, format } = data;
 	const the_insn: TRICORE_INSN_T = {
 		error: "",
@@ -116,6 +114,7 @@ describe.each(_insFormatTestDatas)("#md_assemble #tricore_ip #find_opcode positi
 });
 
 describe("#md_assemble #tricore_ip #find_opcode negative test", () => {
+	const ps = new Parser();
 	test("displacement is not even", () => {
 		expect(ps.md_assemble("jeq %d1,6,0x25")).toBe("displacement is not even");
 	});
@@ -148,6 +147,9 @@ describe("#md_assemble #tricore_ip #find_opcode negative test", () => {
 
 	test("bad numeric constant", () => {
 		expect(ps.md_assemble("mov %d3,1.33")).toBe("bad numeric constant");
+		expect(ps.md_assemble("st.a [%a14]+1.33,%a4")).toBe("bad numeric constant");
+		expect(ps.md_assemble("st.a [%a14+]+1.33,%a4")).toBe("bad numeric constant");
+		expect(ps.md_assemble("st.a [%a14+c]+1.33,%a4")).toBe("bad numeric constant");
 	});
 
 	test("illegal prefix for constant expression", () => {
@@ -184,7 +186,6 @@ describe("#md_assemble #tricore_ip #find_opcode negative test", () => {
 		expect(ps.md_assemble("st.a [%a5+,%a4")).toBe("missing ']'");
 		expect(ps.md_assemble("st.a [%a2+r,%a4")).toBe("missing ']'");
 		expect(ps.md_assemble("st.a [%a2+c,%a4")).toBe("missing ']'");
-		expect(ps.md_assemble("st.a [%a2+i,%a4")).toBe("missing ']'");
 	});
 
 	test("invalid address mode", () => {
@@ -192,15 +193,27 @@ describe("#md_assemble #tricore_ip #find_opcode negative test", () => {
 	});
 
 	test("complex expression", () => {
-		expect(ps.md_assemble("st.a [%a5]+24+12,%a4")).toBeUndefined;
-		expect(ps.md_assemble("st.a [%a5+]+24+12,%a4")).toBeUndefined;
+		expect(ps.md_assemble("st.a [%a5]+24+12,%a4")).toBeUndefined();
+		expect(ps.md_assemble("st.a [%a5+]+24+12,%a4")).toBeUndefined();
+		expect(ps.md_assemble("st.a [%a4+c]+24+12,%a4")).toBeUndefined();
+		expect(ps.md_assemble("st.a [%a4+c]+24,%a4")).toBeUndefined();
+		expect(ps.md_assemble("st.a [%a4+r],%a4")).toBeUndefined();
 	});
 
 	test("even address register required", () => {
-		expect(ps.md_assemble("st.a [%a5+r]-4,%a4")).toBe("even address register required");
+		expect(ps.md_assemble("st.a [%a5+r],%a4")).toBe("even address register required");
+		expect(ps.md_assemble("st.a [%a5+r],%a4")).toBe("even address register required");
 		expect(ps.md_assemble("st.a [%a5+c]-4,%a4")).toBe("even address register required");
-		expect(ps.md_assemble("st.a [%a5+i]-4,%a4")).toBe("even address register required");
 	});
+
+	test("no offset allowed for this mode", () => {
+		expect(ps.md_assemble("st.a [%a14+r]-4,%a4")).toBe("no offset allowed for this mode");
+	});
+
+	test("invalid address mode", () => {
+		expect(ps.md_assemble("st.a [%a14*],%a4")).toBe("invalid address mode");
+		expect(ps.md_assemble("st.a [%a14+x],%a4")).toBe("invalid address mode");
+	})
 });
 
 type numericTestDatas = {
@@ -241,8 +254,57 @@ const _numericTestDatas: numericTestDatas = [
 ];
 
 describe.each(_numericTestDatas)("#classify_numeric", (data) => {
+	const ps = new Parser();
 	const { num, type } = data;
 	test(type, () => {
 		expect(ps.classify_numeric(num)).toBe(type);
+	});
+});
+
+describe("#parse a document", () => {
+	test("positive test", () => {
+		const input = fs.readFileSync(path.join(__dirname, "..", "resources", "example.S"), "utf-8");
+		const parser = new Parser();
+		expect(parser.parse_a_document(input)).toEqual([]);
+	});
+
+	test("empty file", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document("   	 ")).toEqual([]);
+	});
+
+	test("unknown pseudo-op", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document('.sdecl ".text.t.main", CODE')).toEqual([
+			{ line: 0, message: "unknown pseudo-op: .sdecl" }
+		]);
+	});
+
+	test("instruction syntax error", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document("st.a [%a14+x],%a4")).toEqual([
+			{ line: 0, message: "invalid address mode" }
+		]);
+	});
+
+	test("unrecognize character", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document("mov.aa %a14, %SP \n ; ")).toEqual([
+			{ line: 1, message: "junk at end of line, first unrecognize character is ';'" }
+		]);
+	});
+
+	test("unknown symbol", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document("call printf")).toEqual([
+			{ line: 0, message: "unknown symbol" }
+		]);
+	});
+
+	test("expected symbol name", () => {
+		const parser = new Parser();
+		expect(parser.parse_a_document(".global        ")).toEqual([
+			{ line: 0, message: "expected symbol name" }
+		]);
 	});
 });
