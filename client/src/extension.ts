@@ -30,15 +30,15 @@ export function activate(context: ExtensionContext) {
 	};
 
 	const clientOptions: LanguageClientOptions = {
-		documentSelector: [{ scheme: 'file', language: 'plaintext' }],
+		documentSelector: [{ scheme: 'file', language: 'Tricore' }],
 		synchronize: {
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}
 	};
 
 	client = new LanguageClient(
-		'languageServerExample',
-		'Language Server Example',
+		'Tricore',
+		'Tricore Assembly',
 		serverOptions,
 		clientOptions
 	);

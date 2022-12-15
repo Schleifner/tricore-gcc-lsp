@@ -1,10 +1,14 @@
-export type syntaxTestDatas = {
+import { join } from "path";
+import { readFileSync } from "fs";
+import { loadWASM, createOnigScanner } from "vscode-oniguruma";
+
+type syntaxTestDatas = {
   name: string;
   pattern: string;
   testStrings: string[];
 }[];
 
-export const testDatas: syntaxTestDatas = [
+const testDatas: syntaxTestDatas = [
   {
     "name": "comment.line.double-slash.tricore",
     "pattern": "(?://).*$",
@@ -12,8 +16,8 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "comment.line.semicolon.tricore",
-    "pattern": "(?:;).*$",
-    "testStrings": ["; This is a semicolon line comment"]
+    "pattern": "(?:#).*$",
+    "testStrings": ["# This is a semicolon line comment"]
   },
   {
     "name": "storage.register.general-purpose.tricore",
@@ -36,131 +40,122 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "keyword.control.directive.control.tricore",
-    "pattern": "\\.(?i)(?:comment|end|fail|include|message|warning|ident)(?-i)\\b",
+    "pattern": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name|plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b",
     "testStrings": [
-      ".comment", ".end", ".fail", ".include", ".message", ".warning", ".ident",
-      ".COMMENT", ".END", ".FAIL", ".INCLUDE", ".MESSAGE", ".WARNING", ".IDENT"
+      ".code16", ".code32", ".optim", ".noopt", ".ident", ".line", ".symver", ".loc_mark_labels", ".offset", ".abort", ".altmacro", ".debug", ".eject", ".end", ".err", ".error",
+      ".appfile", ".appline", ".fail", ".format", ".lflags", ".linefile", ".linkonce", ".list", ".llen", ".mri", "..mri", ".name", ".noformat", ".nolist", ".nopage", ".page",
+      ".plen", ".print", ".psize", ".sbttl", ".spc", ".title", ".ttl", ".xref", ".warning",
+      ".CODE16", ".CODE32", ".OPTIM", ".NOOPT", ".IDENT", ".LINE", ".SYMVER", ".LOC_MARK_LABELS", ".OFFSET", ".ABORT", ".ALTMACRO", ".DEBUG", ".EJECT", ".END", ".ERR", ".ERROR",
+      ".APPFILE", ".APPLINE", ".FAIL", ".FORMAT", ".LFLAGS", ".LINEFILE", ".LINKONCE", ".LIST", ".LLEN", ".MRI", "..MRI", ".NAME", ".NOFORMAT", ".NOLIST", ".NOPAGE", ".PAGE",
+      ".PLEN", ".PRINT", ".PSIZE", ".SBTTL", ".SPC", ".TITLE", ".TTL", ".XREF", ".WARNING",
     ]
   },
   {
     "name": "keyword.control.directive.definition.symbol.tricore",
-    "pattern": "\\.(?i)(?:alias|equ|extern|globa?l|local)(?-i)\\b",
+    "pattern": "\\.(?i)(?:common(?:\\.s)?|(?:b?l)?comm|l?bit|bpos[bhw]?|local|size|type|weak(?:ref)?|internal|hidden|protected|vtable_(?:entry|inherit)?|eq(?:u(?:iv)?|v)|globa?l|lsym|set|stab[dns]|x(?:def|com|stabs)|tls_common)(?-i)\\b",
     "testStrings": [
-      ".alias", ".equ", ".extern", ".global", ".globl", ".local",
-      ".ALIAS", ".EQU", ".EXTERN", ".GLOBAL", ".GLOBL", ".LOCAL"
+      ".blcomm", ".xcom", ".comm", ".common", ".common.s", ".lcomm", ".tls_common", ".bit", ".lbit", ".bpos", ".bposb", ".bposh", ".bposw", ".local", ".size", ".type", ".weak",
+      ".internal", ".hidden", ".protected", ".vtable_entry", ".vtable_inherit", ".equ", ".equiv", ".eqv", ".global", ".globl", ".lsym", ".set", ".stabd", ".stabn", ".stabs",
+      ".xdef", ".xstabs", ".weakref",
+      ".BLCOMM", ".XCOM", ".COMM", ".COMMON", ".COMMON.S", ".LCOMM", ".TLS_COMMON", ".BIT", ".LBIT", ".BPOS", ".BPOSB", ".BPOSH", ".BPOSW", ".LOCAL", ".SIZE", ".TYPE", ".WEAK",
+      ".INTERNAL", ".HIDDEN", ".PROTECTED", ".VTABLE_ENTRY", ".VTABLE_INHERIT", ".EQU", ".EQUIV", ".EQV", ".GLOBAL", ".GLOBL", ".LSYM", ".SET", ".STABD", ".STABN", ".STABS",
+      ".XDEF", ".XSTABS", ".WEAKREF",
     ]
   },
   {
     "name": "keyword.control.directive.section.tricore",
-    "pattern": "\\.(?i)(?:org|sdecl|sect(?:ion)?|set|(?:ro)?data|text|bss|file|size|zero|type|weak)(?-i)\\b",
+    "pattern": "\\.(?i)(?:(?:ro|s|z|pcp)?data|[sz]?bss|(?:pcp)?text|toc|previous|section\\.s|(?:push|pop|sub)?section|sect(?:\\.s)?|version|struct|org|reloc|dcb(?:\\.[bdlswx])?|dc(?:\\.?[abdlswx])?|ds(?:\\.[bdlpswx])?)(?-i)\\b",
     "testStrings": [
-      ".org", ".sdecl", ".sect", ".section", ".set", ".bss", ".text", ".data", ".rodata", ".file", ".size", ".zero", ".type", ".weak",
-      ".ORG", ".SDECL", ".SECT", ".SECTION", ".SET", ".BSS", ".TEXT", ".DATA", ".RODATA", ".FILE", ".SIZE", ".ZERO", ".TYPE", ".WEAK",
+      ".toc", ".rodata", ".sdata", ".sbss", ".zdata", ".zbss", ".pcptext", ".pcpdata", ".previous", ".section", ".section.s", ".sect", ".sect.s", ".pushsection", ".popsection",
+      ".version", ".subsection", ".struct", ".text", ".data", ".bss", ".dc", ".dc.a", ".dc.b", ".dc.l", ".dc.s", ".dc.w", ".dc.x", ".dcb", ".dcb.b", ".dcb.d", ".dcb.l", ".dcb.s",
+      ".dcb.w", ".dcb.x", ".ds", ".ds.b", ".ds.d", ".ds.l", ".ds.p", ".ds.s", ".ds.w", ".ds.x", ".org", ".reloc",
+      ".TOC", ".RODATA", ".SDATA", ".SBSS", ".ZDATA", ".ZBSS", ".PCPTEXT", ".PCPDATA", ".PREVIOUS", ".SECTION", ".SECTION.S", ".SECT", ".SECT.S", ".PUSHSECTION", ".POPSECTION",
+      ".VERSION", ".SUBSECTION", ".STRUCT", ".TEXT", ".DATA", ".BSS", ".DC", ".DC.A", ".DC.B", ".DC.L", ".DC.S", ".DC.W", ".DC.X", ".DCB", ".DCB.B", ".DCB.D", ".DCB.L", ".DCB.S",
+      ".DCB.W", ".DCB.X", ".DS", ".DS.B", ".DS.D", ".DS.L", ".DS.P", ".DS.S", ".DS.W", ".DS.X", ".ORG", ".RELOC",
     ]
   },
   {
     "name": "keyword.control.directive.definition.data.tricore",
-    "pattern": "\\.(?i)(?:accum|align|asciiz?|byte|double|float|string|fract|half|sfract|space|word)(?-i)\\b",
+    "pattern": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?:pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?:8|16|32|64)?|zero|align)(?-i)\\b",
     "testStrings": [
-      ".accum", ".align", ".ascii", ".asciiz", ".byte", ".double", ".float", ".string", ".fract", ".half", ".sfract", ".space", ".word",
-      ".ACCUM", ".ALIGN", ".ASCII", ".ASCIIZ", ".BYTE", ".DOUBLE", ".FLOAT", ".STRING", ".FRACT", ".HALF", ".SFRACT", ".SPACE", ".WORD"
+      ".word", ".pcpinitword", ".uahalf", ".uaword", ".uaxword", ".2byte", ".4byte", ".8byte", ".align", ".ascii", ".asciz", ".balign", ".balignw", ".balignl", ".byte", ".double",
+      ".fill", ".float", ".hword", ".int", ".long", ".octa", ".p2align", ".p2alignw", ".p2alignl", ".quad", ".rva", ".short", ".single", ".skip", ".sleb128", ".string", ".string8",
+      ".string16", ".string32", ".string64", ".uleb128", ".zero",
+      ".WORD", ".PCPINITWORD", ".UAHALF", ".UAWORD", ".UAXWORD", ".2BYTE", ".4BYTE", ".8BYTE", ".ALIGN", ".ASCII", ".ASCIZ", ".BALIGN", ".BALIGNW", ".BALIGNL", ".BYTE", ".DOUBLE",
+      ".FILL", ".FLOAT", ".HWORD", ".INT", ".LONG", ".OCTA", ".P2ALIGN", ".P2ALIGNW", ".P2ALIGNL", ".QUAD", ".RVA", ".SHORT", ".SINGLE", ".SKIP", ".SLEB128", ".STRING", ".STRING8",
+      ".STRING16", ".STRING32", ".STRING64", ".ULEB128", ".ZERO",
     ]
   },
   {
     "name": "keyword.control.directive.macro.preprocessor.tricore",
-    "pattern": "\\.(?i)(?:define|dup[acf]?|endm|if|elif|else|endif|exitm|p?macro|undef)(?-i)\\b",
+    "pattern": "\\.(?i)(?:else(?:c|if)?|end(?:[cmr]|func|if)?|exitm|if(?:[bc]|def|eqs?|g[et]|l[et]|n(?:[bc]|(?:ot)?def|es?))?|incbin|include|ir(?:pc?|epc?)|(?:noalt)?macro|mexit|purgem|rept?)(?-i)\\b",
     "testStrings": [
-      ".define", ".dup", ".dupa", ".dupc", ".dupf", ".endm", ".if", ".elif", ".else", ".endif", ".exitm", ".macro", ".pmacro", ".undef",
-      ".DEFINE", ".DUP", ".DUPA", ".DUPC", ".DUPF", ".ENDM", ".IF", ".ELIF", ".ELSE", ".ENDIF", ".EXITM", ".MACRO", ".PMACRO", ".UNDEF"
+      ".else", ".elsec", ".elseif", ".endc", ".endfunc", ".endif", ".endm", ".endr", ".exitm", ".if", ".ifb", ".ifc", ".ifdef", ".ifeq", ".ifeqs", ".ifge", ".ifle", ".iflt",
+      ".ifnb", ".ifnc", ".ifndef", ".ifne", ".ifnes", ".ifnotdef", ".incbin", ".include", ".irp", ".irep", ".irpc", ".irepc", ".macro", ".mexit", ".noaltmacro", ".purgem",
+      ".rep", ".rept",
+      ".ELSE", ".ELSEC", ".ELSEIF", ".ENDC", ".ENDFUNC", ".ENDIF", ".ENDM", ".ENDR", ".EXITM", ".IF", ".IFB", ".IFC", ".IFDEF", ".IFEQ", ".IFEQS", ".IFGE", ".IFLE", ".IFLT",
+      ".IFNB", ".IFNC", ".IFNDEF", ".IFNE", ".IFNES", ".IFNOTDEF", ".INCBIN", ".INCLUDE", ".IRP", ".IREP", ".IRPC", ".IREPC", ".MACRO", ".MEXIT", ".NOALTMACRO", ".PURGEM",
+      ".REP", ".REPT",
     ]
   },
   {
     "name": "keyword.control.directive.hll.tricore",
-    "pattern": "\\.(?i)(?:calls|compiler_(?:invocation|name|version)|misrac)(?-i)\\b",
+    "pattern": "\\.(?i)(?:file|loc|func|gnu_attribute|this_gcc_requires_the_gnu_assembler)(?-i)\\b",
     "testStrings": [
-      ".calls", ".compiler_invocation", ".compiler_name", ".compiler_version", ".misrac",
-      ".CALLS", ".COMPILER_INVOCATION", ".COMPILER_NAME", ".COMPILER_VERSION", ".MISRAC"
-    ]
-  },
-  {
-    "name": "keyword.control.controls.listing.tricore",
-    "pattern": "\\$(?i)(?:list|page|prctl|s?title)(?-i)\\b",
-    "testStrings": [
-      "$list", "$page", "$prctl", "$stitle", "$title",
-      "$LIST", "$PAGE", "$PRCTL", "$STITLE", "$TITLE"
-    ]
-  },
-  {
-    "name": "keyword.control.controls.miscellaneous.tricore",
-    "pattern": "\\$(?i)(?:case|cpu_tc\\d+|debug|hw_only|ident|mmu|no_fpu|object|tc(?:131|16[x2]?)|warning)(?-i)\\b",
-    "testStrings": [
-      "$case", "$cpu_tc018", "$debug", "$hw_only", "$ident", "$mmu", "$no_fpu", "$object", "$tc131", "$tc16", "$tc16x", "$tc162", "$warning",
-      "$CASE", "$CPU_TC018", "$DEBUG", "$HW_ONLY", "$IDENT", "$MMU", "$NO_FPU", "$OBJECT", "$TC131", "$TC16", "$TC16X", "$TC162", "$WARNING"
+      ".file", ".loc", ".func", ".gnu_attribute", ".this_gcc_requires_the_gnu_assembler",
+      ".FILE", ".LOC", ".FUNC", ".GNU_ATTRIBUTE", ".THIS_GCC_REQUIRES_THE_GNU_ASSEMBLER",
     ]
   },
   {
     "name": "constant.numeric.dec.tricore",
-    "pattern": "#?\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b",
+    "pattern": "\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b",
     "testStrings": [
-      "6e10", "6E10", "12", "1245", "3.14", "2.7e10", "2.7E10",
-      "#6e10", "#6E10", "#12", "#1245", "#3.14", "#2.7e10", "#2.7E10"
+      "6e10", "6E10", "12", "1245", "3.14", "2.7e10", "2.7E10"
     ]
   },
   {
     "name": "constant.numeric.dec.tricore",
-    "pattern": "#?(\\.\\d+)\\b",
-    "testStrings": [".6", "#.6"]
+    "pattern": "(\\.\\d+)\\b",
+    "testStrings": [".6"]
   },
   {
     "name": "constant.numeric.bin.tricore",
-    "pattern": "#?\\b0[Bb][01]+\\b",
-    "testStrings": ["0B1101", "0b11001010", "#0B1101", "#0b11001010"]
+    "pattern": "\\b0[Bb][01]+\\b",
+    "testStrings": ["0B1101", "0b11001010"]
   },
   {
     "name": "constant.numeric.hex.tricore",
-    "pattern": "#?\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b",
-    "testStrings": ["0X12FF", "0x45", "0xfa10", "0b", "#0X12FF", "#0x45", "#0xfa10", "0B"]
+    "pattern": "\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b",
+    "testStrings": ["0X12FF", "0x45", "0xfa10", "0b", "0B"]
   },
   {
     "name": "variable.label.define.tricore",
-    "pattern": "^[a-zA-Z_][0-9a-zA-Z_]*:?",
+    "pattern": "\\s*[.$_a-zA-Z][.$_0-9a-zA-Z]*:",
     "testStrings": [
-      "LAB1", "main: ", "LAB_1:"
-    ]
-  },
-  {
-    "name": "variable.label.define.tricore",
-    "pattern": "^\\s+[a-zA-Z_][0-9a-zA-Z_]*:",
-    "testStrings": [
-      "  main: ", " main:", " LAB_1:"
+      "  main:", " main:", " LAB_1:", ".L1:" , "__STACK:", "$TC1:"
     ]
   },
   {
     "name": "variable.label.ref.tricore",
-    "pattern": "\\b[a-zA-Z_][0-9a-zA-Z_]*\\b",
-    "testStrings": ["main", "LAB_1"]
+    "pattern": "\\b[.$_a-zA-Z][.$_0-9a-zA-Z]*\\b",
+    "testStrings": ["main", "LAB_1", ".L1", "__STACK", "$TC1"]
   },
   {
     "name": "variable.label.local.define.tricore",
-    "pattern": "^(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:?",
-    "testStrings": ["1", "22:", "139", "254:"]
-  },
-  {
-    "name": "variable.label.local.define.tricore",
-    "pattern": "^\\s+(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:",
-    "testStrings": [" 1:", " 22:", " 139:", " 254:"]
+    "pattern": "\\s*(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:",
+    "testStrings": [" 1:", " 22:", "139:", "254:"]
   },
   {
     "name": "variable.label.local.ref.tricore",
-    "pattern": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pn]\\b",
-    "testStrings": ["1p", "22n", "139p", "254n"]
+    "pattern": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[bf]\\b",
+    "testStrings": ["1b", "22f", "139b", "254f"]
   },
   {
     "name": "support.function.mnemonic.general-purpose.data-transfer.mov.tricore",
-    "pattern": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|lea)(?-i)\\b",
+    "pattern": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|l[eh]a)(?-i)\\b",
     "testStrings": [
-      "mov", "mov.a", "mov.aa", "mov.d", "mov.u", "movh", "movh.a", "cmov", "cmovn", "lea",
-      "MOV", "MOV.A", "MOV.AA", "MOV.D", "MOV.U", "MOVH", "MOVH.A", "CMOV", "CMOVN", "LEA",
+      "mov", "mov.a", "mov.aa", "mov.d", "mov.u", "movh", "movh.a", "cmov", "cmovn", "lea", "lha",
+      "MOV", "MOV.A", "MOV.AA", "MOV.D", "MOV.U", "MOVH", "MOVH.A", "CMOV", "CMOVN", "LEA", "LHA"
     ]
   },
   {
@@ -268,19 +263,20 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.general-purpose.arithmetic.count-leading.tricore",
-    "pattern": "\\b(?i)(?:cl[osz](?:\\.h)?)(?-i)\\b",
+    "pattern": "\\b(?i)(?:cl[osz](?:\\.h)?|crc(?:n|32(\\.b|[bl]\\.w))|popcnt.w)(?-i)\\b",
     "testStrings": [
-      "clo", "clo.h", "cls", "cls.h", "clz", "clz.h", "CLO", "CLO.H", "CLS", "CLS.H", "CLZ", "CLZ.H"
+      "clo", "clo.h", "cls", "cls.h", "clz", "clz.h", "crc32.b", "crc32b.w", "crc32l.w", "crcn", "popcnt.w",
+      "CLO", "CLO.H", "CLS", "CLS.H", "CLZ", "CLZ.H", "CRC32.B", "CRC32B.W", "CRC32L.W", "CRCN", "POPCNT.W"
     ]
   },
   {
     "name": "support.function.mnemonic.general-purpose.arithmetic.shift.tricore",
-    "pattern": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s))?)(?-i)\\b",
+    "pattern": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s)|uffle)?)(?-i)\\b",
     "testStrings": [
       "sh", "sh.and.t", "sh.andn.t", "sh.eq", "sh.ge", "sh.ge.u", "sh.h", "sh.lt", "sh.lt.u", "sh.nand.t",
-      "sh.ne", "sh.nor.t", "sh.or.t", "sh.orn.t", "sh.xnor.t", "sh.xor.t", "sha", "sha.h", "shas",
+      "sh.ne", "sh.nor.t", "sh.or.t", "sh.orn.t", "sh.xnor.t", "sh.xor.t", "sha", "sha.h", "shas", "shuffle",
       "SH", "SH.AND.T", "SH.ANDN.T", "SH.EQ", "SH.GE", "SH.GE.U", "SH.H", "SH.LT", "SH.LT.U", "SH.NAND.T",
-      "SH.NE", "SH.NOR.T", "SH.OR.T", "SH.ORN.T", "SH.XNOR.T", "SH.XOR.T", "SHA", "SHA.H", "SHAS"
+      "SH.NE", "SH.NOR.T", "SH.OR.T", "SH.ORN.T", "SH.XNOR.T", "SH.XOR.T", "SHA", "SHA.H", "SHAS", "SHUFFLE"
     ]
   },
   {
@@ -362,10 +358,10 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.general-prupose.store.tricore",
-    "pattern": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap\\.w)(?-i)\\b",
+    "pattern": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap(?:msk)?\\.w|cmpswap.w)(?-i)\\b",
     "testStrings": [
-      "st.a", "st.b", "st.d", "st.da", "st.h", "st.q", "st.t", "st.w", "stlcx", "stucx", "swap.w",
-      "ST.A", "ST.B", "ST.D", "ST.DA", "ST.H", "ST.Q", "ST.T", "ST.W", "STLCX", "STUCX", "SWAP.W"
+      "st.a", "st.b", "st.d", "st.da", "st.h", "st.q", "st.t", "st.w", "stlcx", "stucx", "swap.w", "cmpswap.w", "swapmsk.w", 
+      "ST.A", "ST.B", "ST.D", "ST.DA", "ST.H", "ST.Q", "ST.T", "ST.W", "STLCX", "STUCX", "SWAP.W", "CMPSWAP.w", "SWAPMSK.W"
     ]
   },
   {
@@ -377,10 +373,10 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.system.tricore",
-    "pattern": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore)(?-i)\\b",
+    "pattern": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore|wait)(?-i)\\b",
     "testStrings": [
-      "syscall", "dsync", "isync", "enable", "disable", "nop", "debug", "restore",
-      "SYSCALL", "DSYNC", "ISYNC", "ENABLE", "DISABLE", "NOP", "DEBUG", "RESTORE"
+      "syscall", "dsync", "isync", "enable", "disable", "nop", "debug", "restore", "wait",
+      "SYSCALL", "DSYNC", "ISYNC", "ENABLE", "DISABLE", "NOP", "DEBUG", "RESTORE", "WAIT"
     ]
   },
   {
@@ -393,10 +389,32 @@ export const testDatas: syntaxTestDatas = [
   },
   {
     "name": "support.function.mnemonic.arithmetic.float.tricore",
-    "pattern": "\\b(?i)(?:fto(?:i|q31|u)z?|(?:[iu]|q31)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b",
+    "pattern": "\\b(?i)(?:fto(?:(?:i|q31|u)z?|hp)|(?:[iu]|q31|hp)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b",
     "testStrings": [
-      "cmp.f", "ftoi", "ftoiz", "ftoq31", "ftoq31z", "ftou", "ftouz", "itof", "q31tof", "qseed.f", "utof", "pack", "unpack",
-      "CMP.F", "FTOI", "FTOIZ", "FTOQ31", "FTOQ31Z", "FTOU", "FTOUZ", "ITOF", "Q31TOF", "QSEED.F", "UTOF", "PACK", "UNPACK"
+      "cmp.f", "ftoi", "ftoiz", "ftoq31", "ftoq31z", "ftou", "ftouz", "itof", "q31tof", "qseed.f", "utof", "pack", "unpack", "ftohp", "hptof",
+      "CMP.F", "FTOI", "FTOIZ", "FTOQ31", "FTOQ31Z", "FTOU", "FTOUZ", "ITOF", "Q31TOF", "QSEED.F", "UTOF", "PACK", "UNPACK", "FTOHP", "HPTOF"
     ]
   }
 ]
+
+function regularTest(pattern: string, testStrings: string[]): boolean {
+  const scanner = createOnigScanner([pattern]);
+  // if (testStrings.length === 0) return false;
+  for (const str of testStrings) {
+    if (scanner.findNextMatchSync(str, 0) === null) {
+      return false;
+    };
+  }
+  return true;
+}
+
+beforeAll(async () => {
+  return await loadWASM(readFileSync(join(__dirname, "../../../node_modules/vscode-oniguruma/release/onig.wasm")));
+});
+
+describe.each(testDatas)("Tricore Syntax Highlight", (data) => {
+  const { name, pattern, testStrings } = data;
+  test(name, () => {
+    expect(regularTest(pattern, testStrings)).toEqual(true);
+  });
+});

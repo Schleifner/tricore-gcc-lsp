@@ -3,16 +3,26 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"type": "node",
+			"name": "tricore-parser",
+			"request": "launch",
+			"runtimeArgs": [
+				"-r",
+				"ts-node/register"
+			],
+			"args": ["${workspaceRoot}/server/src/parser/parser.ts"],
+			"cwd":"${workspaceFolder}"
+		},
+		{
 			"type": "extensionHost",
 			"request": "launch",
 			"name": "Launch Client",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
 			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
-			"preLaunchTask": {
-				"type": "npm",
-				"script": "watch"
-			}
+      "preLaunchTask": "Watch",
+      "postDebugTask": "Terminate watch",
+      "sourceMaps": true
 		},
 		{
 			"type": "node",
@@ -20,19 +30,9 @@
 			"name": "Attach to Server",
 			"port": 6009,
 			"restart": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
-		},
-		{
-			"name": "Language Server E2E Test",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceRoot}",
-				"--extensionTestsPath=${workspaceRoot}/client/out/test/index",
-				"${workspaceRoot}/client/testFixture"
-			],
-			"outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+			"timeout": 30000,
+			"outFiles": ["${workspaceRoot}/server/out/**/*.js"],
+			"sourceMaps": true
 		}
 	],
 	"compounds": [

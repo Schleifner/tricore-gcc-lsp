@@ -15,16 +15,13 @@
 			"include": "#directives"
 		},
 		{
-			"include": "#controls"
-		},
-		{
 			"include": "#strings"
 		},
 		{
-			"include": "#numerics"
+			"include": "#symbols"
 		},
 		{
-			"include": "#symbols"
+			"include": "#numerics"
 		}
 	],
 	"repository": {
@@ -36,7 +33,7 @@
 				},
 				{
 					"name": "comment.line.semicolon.tricore",
-					"match": "(?:;).*$"
+					"match": "(?:#).*$"
 				},
 				{
 					"name": "comment.block.tricore",
@@ -61,41 +58,29 @@
 			"patterns": [
 				{
 					"name": "keyword.control.directive.control.tricore",
-					"match": "\\.(?i)(?:comment|end|fail|include|message|warning|ident)(?-i)\\b"
+					"match": "\\.(?i)(?:code(?:16|32)|optim|noopt|ident|symver|loc_mark_labels|offset|abort|altmacro|debug|eject|end|err(?:or)?|app(?:file|line)|fail|(?:no)?(?:format|list|page)|lflags|line(?:file)?|linkonce|llen|\\.?mri|name|plen|print|psize|(?:sb)?ttl|spc|title|xref|warning)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.definition.symbol.tricore",
-					"match": "\\.(?i)(?:alias|equ|extern|globa?l|local)(?-i)\\b"
+					"match": "\\.(?i)(?:common(?:\\.s)?|(?:b?l)?comm|l?bit|bpos[bhw]?|local|size|type|weak(?:ref)?|internal|hidden|protected|vtable_(?:entry|inherit)?|eq(?:u(?:iv)?|v)|globa?l|lsym|set|stab[dns]|x(?:def|com|stabs)|tls_common)(?-i)\\b"
 				},
 				{
 
 					"name": "keyword.control.directive.section.tricore",
-					"match": "\\.(?i)(?:org|sdecl|sect(?:ion)?|set|(?:(?:ro)?bss|text|data)|file|size|zero|type|weak)(?-i)\\b"
+					"match": "\\.(?i)(?:(?:ro|s|z|pcp)?data|[sz]?bss|(?:pcp)?text|toc|previous|section\\.s|(?:push|pop|sub)?section|sect(?:\\.s)?|version|struct|org|reloc|dcb(?:\\.[bdlswx])?|dc(?:\\.?[abdlswx])?|ds(?:\\.[bdlpswx])?)(?-i)\\b"
 				},
 				{
 
 					"name": "keyword.control.directive.definition.data.tricore",
-					"match": "\\.(?i)(?:accum|align|ascii(z)?|byte|double|float|string|fract|half|sfract|space|word)(?-i)\\b"
+					"match": "\\.(?i)(?:asci[iz]|(?:b|p2)align[wl]?|[248]?byte|int|float|uahalf|(?:pcpinit|uax?|h)?word|double|fill|long|octa|quad|rva|short|single|skip|[us]leb128|string(?:8|16|32|64)?|zero|align)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.macro.preprocessor.tricore",
-					"match": "\\.(?i)(?:define|dup[acf]?|endm|if|elif|else|endif|exitm|p?macro|undef)(?-i)\\b"
+					"match": "\\.(?i)(?:else(?:c|if)?|end(?:[cmr]|func|if)?|exitm|if(?:[bc]|def|eqs?|g[et]|l[et]|n(?:[bc]|(?:ot)?def|es?))?|incbin|include|ir(?:pc?|epc?)|(?:noalt)?macro|mexit|purgem|rept?)(?-i)\\b"
 				},
 				{
 					"name": "keyword.control.directive.hll.tricore",
-					"match": "\\.(?i)(?:calls|compiler_(?:invocation|name|version)|misrac)(?-i)\\b"
-				}
-			]
-		},
-		"controls": {
-			"patterns": [
-				{
-					"name": "keyword.control.controls.listing.tricore",
-					"match": "\\$(?i)(?:list|page|prctl|s?title)(?-i)\\b"
-				},
-				{
-					"name": "keyword.control.controls.miscellaneous.tricore",
-					"match": "\\$(?i)(?:case|cpu_tc\\d+|debug|hw_only|ident|mmu|no_fpu|object|tc(?:131|16[x2]?)warning)(?-i)\\b"
+					"match": "\\.(?i)(?:file|loc|func|gnu_attribute|this_gcc_requires_the_gnu_assembler)(?-i)\\b"
 				}
 			]
 		},
@@ -153,19 +138,19 @@
 			"patterns": [
 				{
 					"name": "constant.numeric.dec.tricore",
-					"match": "#?\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b"
+					"match": "\\b(?:(?:\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b"
 				},
 				{
 					"name": "constant.numeric.dec.tricore",
-					"match": "#?(\\.\\d+)\\b"
+					"match": "(\\.\\d+)\\b"
 				},
 				{
 					"name": "constant.numeric.bin.tricore",
-					"match": "#?\\b0[Bb][01]+\\b"
+					"match": "\\b0[Bb][01]+\\b"
 				},
 				{
 					"name": "constant.numeric.hex.tricore",
-					"match": "#?\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b"
+					"match": "\\b(?i)(?:(?:0x)?[0-9a-fA-F]+)(?-i)\\b"
 				}
 			]
 		},
@@ -173,7 +158,7 @@
 			"patterns": [
 				{
 					"name": "support.function.mnemonic.general-purpose.data-transfer.mov.tricore",
-					"match": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|lea)(?-i)\\b"
+					"match": "\\b(?i)(?:mov(?:\\.(?:aa?|d|u))?|movh(?:\\.a)?|cmovn?|l[eh]a)(?-i)\\b"
 				},
 				{
 					"name": "support.function.mnemonic.general-purpose.arithmetic.add.tricore",
@@ -225,11 +210,11 @@
 				},
 				{
 					"name": "support.function.mnemonic.general-purpose.arithmetic.count-leading.tricore",
-					"match": "\\b(?i)(?:cl[osz](?:\\.h)?)(?-i)\\b"
+					"match": "\\b(?i)(?:cl[osz](?:\\.h)?|crc(?:n|32(\\.b|[bl]\\.w))|popcnt.w)(?-i)\\b"
 				},
 				{
 					"name": "support.function.mnemonic.general-purpose.arithmetic.shift.tricore",
-					"match": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s))?)(?-i)\\b"
+					"match": "\\b(?i)(?:sh(?:\\.(?:andn?\\.t|eq|ge(?:\\.u)?|h|lt(?:\\.u)?|nand.t|n(?:e|or\\.t)|orn?\\.t|xn?or\\.t)|a(?:(?:\\.h)?|s)|uffle)?)(?-i)\\b"
 				},
 				{
 					"name": "support.function.mnemonic.general-purpose.arithmetic.bit-field.tricore",
@@ -273,7 +258,7 @@
 				},
 				{
 					"name": "support.function.mnemonic.general-prupose.store.tricore",
-					"match": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap\\.w)(?-i)\\b"
+					"match": "\\b(?i)(?:st(?:\\.(?:[abhqtw]|da?)|[lu]cx)|swap(?:msk)?\\.w|cmpswap.w)(?-i)\\b"
 				},
 				{
 					"name": "support.function.mnemonic.general-prupose.context-related.tricore",
@@ -281,7 +266,7 @@
 				},
 				{
 					"name": "support.function.mnemonic.system.tricore",
-					"match": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore)(?-i)\\b"
+					"match": "\\b(?i)(?:syscall|[di]sync|(?:en|dis)able|nop|debug|restore|wait)(?-i)\\b"
 				},
 				{
 					"name": "support.function.mnemonic.cache.tricore",
@@ -289,7 +274,7 @@
 				},
 				{
 					"name": "support.function.mnemonic.arithmetic.float.tricore",
-					"match": "\\b(?i)(?:fto(?:i|q31|u)z?|(?:[iu]|q31)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b"
+					"match": "\\b(?i)(?:fto(?:(?:i|q31|u)z?|hp)|(?:[iu]|q31|hp)tof|(?:un)?pack|(?:cmp|qseed)\\.f)(?-i)\\b"
 				}
 			]
 		},
@@ -297,27 +282,19 @@
 			"patterns": [
 				{
 					"name": "variable.label.define.tricore",
-					"match": "^[a-zA-Z_][0-9a-zA-Z_]*:?"
-				},
-				{
-					"name": "variable.label.define.tricore",
-					"match": "^\\s+[a-zA-Z_][0-9a-zA-Z_]*:"
+					"match": "\\s*[.$_a-zA-Z][.$_0-9a-zA-Z]*:"
 				},
 				{
 					"name": "variable.label.ref.tricore",
-					"match": "\\b[a-zA-Z_][0-9a-zA-Z_]*\\b"
+					"match": "\\b[.$_a-zA-Z][.$_0-9a-zA-Z]*\\b"
 				},
 				{
 					"name": "variable.label.local.define.tricore",
-					"match": "^(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:?"
-				},
-				{
-					"name": "variable.label.local.define.tricore",
-					"match": "^\\s+(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:"
+					"match": "\\s*(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\b:"
 				},
 				{
 					"name": "variable.label.local.ref.tricore",
-					"match": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[pn]\\b"
+					"match": "\\b(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[bf]\\b"
 				}
 			]
 		},
