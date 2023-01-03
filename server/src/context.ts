@@ -16,5 +16,5 @@ export function createContext(
 		store: new Map(),
 		logger,
 		connection,
-	}
+	};
 }

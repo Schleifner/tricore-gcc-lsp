@@ -1,6 +1,6 @@
 {
-  "name": "tricore-lsp",
-  "description": "Tricore language server",
+  "name": "tricore-gcc-lsp",
+  "description": "Tricore GCC Assembly language server",
   "author": "Xinquan XU",
   "version": "1.0.0",
   "license": "MIT",

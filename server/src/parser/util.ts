@@ -107,7 +107,7 @@ export function isWhiteSpace(c: number): boolean {
 }
 
 export function isAlpha(c: number): boolean {
-  let lowerC = c | 32;    // unify uppercases and lowercases;
+  const lowerC = c | 32;    // unify uppercases and lowercases;
   return lowerC >= CharCode.a && lowerC <= CharCode.z;
 }
 

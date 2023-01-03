@@ -45,7 +45,7 @@ export enum TRICORE_FMT {
   TRICORE_FMT_SRRS,
   TRICORE_FMT_SSR,
   TRICORE_FMT_SSRO
-};
+}
 
 export enum PREFIX_T {
   PREFIX_NONE = 0,
@@ -68,7 +68,7 @@ export enum PREFIX_T {
   PREFIX_PLT = 17,
   PREFIX_BITPOS = 18,
   PREFIX_SBREG = 19
-};
+}
 
 export interface PFX_T {
   pfx: string;
@@ -96,7 +96,7 @@ export interface TRICORE_OPCODE {
   nr_operands: number;
   args: string;
   fields: string;
-};
+}
 
 export interface TRICORE_INSN_T {
   error: string;
@@ -109,7 +109,7 @@ export interface TRICORE_INSN_T {
   matches_k: number[];
   is_odd: number[];
   needs_prefix: number;
-};
+}
 
 /* Kinds of operands for TriCore instructions:
    d  A simple data register (%d0-%d15).

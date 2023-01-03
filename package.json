@@ -1,6 +1,6 @@
 {
-	"name": "tricore-lsp",
-	"description": "Tricore language server",
+	"name": "tricore-gcc-lsp",
+	"description": "Tricore GCC Assembly language server",
 	"author": "Xinquan XU",
 	"license": "MIT",
 	"version": "1.0.0",
@@ -16,21 +16,21 @@
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onLanguage:Tricore",
+		"onLanguage:Tricore-GCC",
 		"workspaceContains:**/*.{s,S,asm,ASM}"
 	],
 	"main": "./client/out/extension",
 	"contributes": {
 		"breakpoints": [
 			{
-				"language": "Tricore"
+				"language": "Tricore-GCC"
 			}
 		],
 		"languages": [
 			{
-				"id": "Tricore",
+				"id": "Tricore-GCC",
 				"aliases": [
-					"Tricore Assembly"
+					"Tricore GCC Assembly"
 				],
 				"extensions": [
 					".s",
@@ -42,16 +42,16 @@
 		],
 		"grammars": [
 			{
-				"language": "Tricore",
-				"scopeName": "source.tricore",
-				"path": "./client/syntaxes/Tricore Assembly.tmLanguage.json"
+				"language": "Tricore-GCC",
+				"scopeName": "source.tricore.gcc",
+				"path": "./client/syntaxes/Tricore GCC Assembly.tmLanguage.json"
 			}
 		],
 		"configuration": {
 			"type": "object",
-			"title": "tricore",
+			"title": "tricore-gcc",
 			"properties": {
-				"Tricore.trace.server": {
+				"Tricore-GCC.trace.server": {
 					"type": "string",
 					"enum": [
 						"off",
@@ -65,7 +65,7 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run build",
+		"vscode:prepublish": "npm run test && npm run lint && npm run build",
 		"build": "webpack --mode production --devtool hidden-source-map --config ./dual.webpack.config.js",
 		"watch": "webpack --watch --config ./dual.webpack.config.js",
 		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",

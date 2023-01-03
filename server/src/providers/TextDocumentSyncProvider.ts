@@ -25,14 +25,14 @@ export default class TextDocumentSyncProvider implements Provider {
 				},
 				message,
 				severity: DiagnosticSeverity.Error,
-				source: "Tricore Assembly",
-			}
+				source: "Tricore GCC Assembly",
+			};
 		});
 	}
 
 	process(uri:string, document: TextDocument) {
 		const parserDiagnostics = this.processor.process(document);
-		let lspDiagnostics = this.parseDiagnostic(parserDiagnostics);
+		const lspDiagnostics = this.parseDiagnostic(parserDiagnostics);
 		this.connection.sendDiagnostics({
 			uri,
 			diagnostics: lspDiagnostics,
@@ -74,6 +74,6 @@ export default class TextDocumentSyncProvider implements Provider {
 		connection.onDidSaveTextDocument(this.onDidSaveTextDocument.bind(this));
 		return {
 			textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
-		}
+		};
 	}
 }

@@ -30,15 +30,15 @@ export function activate(context: ExtensionContext) {
 	};
 
 	const clientOptions: LanguageClientOptions = {
-		documentSelector: [{ scheme: 'file', language: 'Tricore' }],
+		documentSelector: [{ scheme: 'file', language: 'Tricore-GCC' }],
 		synchronize: {
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}
 	};
 
 	client = new LanguageClient(
-		'Tricore',
-		'Tricore Assembly',
+		'Tricore-GCC',
+		'Tricore GCC Assembly',
 		serverOptions,
 		clientOptions
 	);

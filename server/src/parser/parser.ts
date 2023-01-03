@@ -58,7 +58,7 @@ export default class Parser {
   }
 
   read_regsuffix(str: string): { regsuffix: string, offset: number } {
-    let chars_seen= 0;
+    const chars_seen= 0;
     if (str.charCodeAt(chars_seen) === CharCode.l) {
       return (str.charCodeAt(chars_seen + 1) === CharCode.l) ? { regsuffix: "-", offset: 2 }
         : (str.charCodeAt(chars_seen + 1) === CharCode.u) ? { regsuffix: "l", offset: 2 }
@@ -291,7 +291,7 @@ export default class Parser {
       }
       let preinc = 0, dstIndex = 0, regno = -1;
       switch (dst.charCodeAt(dstIndex)) {
-        case CharCode.Percent:
+        case CharCode.Percent: {
           mode = dst.charCodeAt(++dstIndex);
           if ((mode === CharCode.s) && (dst.charCodeAt(dstIndex + 1) === CharCode.p) && (dstIndex + 2 === dst.length)) {
             the_insn.ops[numops] = "P";
@@ -304,7 +304,7 @@ export default class Parser {
 
           dstIndex++;
           const regInfo = this.read_regno(dst.slice(dstIndex));
-          let { offset, error } = regInfo;
+          const { offset, error } = regInfo;
           regno = regInfo.regno;
           if (error) {
             the_insn.error = error;
@@ -318,7 +318,7 @@ export default class Parser {
           }
 
           if ((mode === CharCode.d) && (dstIndex < dst.length)) {
-            let { regsuffix, offset } = this.read_regsuffix(dst.slice(dstIndex));
+            const { regsuffix, offset } = this.read_regsuffix(dst.slice(dstIndex));
             mode = regsuffix.charCodeAt(0);
             the_insn.ops[numops] = regsuffix;
             dstIndex += offset;
@@ -343,67 +343,50 @@ export default class Parser {
               : "A";
           }
           break;
+        }
         case CharCode.OpenBracket:
-          if (dstIndex + 1 >= dst.length) {
-            the_insn.error = "missing address register";
-            return;
-          }
-          if (dst.charCodeAt(++dstIndex) === CharCode.Plus) {
-            ++dstIndex;
-            preinc = 1;
-          }
-          if (dst.charCodeAt(dstIndex++) !== CharCode.Percent) {
-            the_insn.error = "missing address register";
-            return;
-          }
-          if ((dst.charCodeAt(dstIndex) === CharCode.s) && dst.charCodeAt(dstIndex + 1) === CharCode.p) {
-            regno = 10;
-            dstIndex += 2;
-          } else if (dst.charCodeAt(dstIndex) === CharCode.a) {
-            ++dstIndex;
-            const regInfo = this.read_regno(dst.slice(dstIndex));
-            let { offset, error } = regInfo;
-            regno = regInfo.regno;
-            if (error) {
-              the_insn.error = error;
+          {
+            if (dstIndex + 1 >= dst.length) {
+              the_insn.error = "missing address register";
               return;
             }
-            dstIndex += offset;
-          } else {
-            the_insn.error = "invalid or missing address register";
-            return;
-          }
-
-          if (dstIndex >= dst.length) {
-            the_insn.error = "missing ']'";
-            return;
-          } else if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
-            if (preinc) {
-              the_insn.ops[numops] = "<";
-            } else {
-              the_insn.ops[numops] = (regno === 15) ? "S"
-                : (regno === 10) ? "&"
-                : "@";
+            if (dst.charCodeAt(++dstIndex) === CharCode.Plus) {
+              ++dstIndex;
+              preinc = 1;
             }
-            if (++dstIndex < dst.length) {
-              if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
+            if (dst.charCodeAt(dstIndex++) !== CharCode.Percent) {
+              the_insn.error = "missing address register";
+              return;
+            }
+            if ((dst.charCodeAt(dstIndex) === CharCode.s) && dst.charCodeAt(dstIndex + 1) === CharCode.p) {
+              regno = 10;
+              dstIndex += 2;
+            } else if (dst.charCodeAt(dstIndex) === CharCode.a) {
+              ++dstIndex;
+              const regInfo = this.read_regno(dst.slice(dstIndex));
+              const { offset, error } = regInfo;
+              regno = regInfo.regno;
+              if (error) {
+                the_insn.error = error;
                 return;
               }
-              break;
+              dstIndex += offset;
             } else {
-              break;
-            }
-          } else if (dst.charCodeAt(dstIndex) === CharCode.Plus) {
-            if (preinc) {
-              the_insn.error = "invalid address mode";
+              the_insn.error = "invalid or missing address register";
               return;
             }
-            if (++dstIndex >= dst.length) {
+  
+            if (dstIndex >= dst.length) {
               the_insn.error = "missing ']'";
               return;
-            }
-            if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
-              the_insn.ops[numops] = ">";
+            } else if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
+              if (preinc) {
+                the_insn.ops[numops] = "<";
+              } else {
+                the_insn.ops[numops] = (regno === 15) ? "S"
+                  : (regno === 10) ? "&"
+                  : "@";
+              }
               if (++dstIndex < dst.length) {
                 if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
                   return;
@@ -412,40 +395,60 @@ export default class Parser {
               } else {
                 break;
               }
-            }
-            mode = dst.charCodeAt(dstIndex);
-            if ((mode === CharCode.c) || (mode === CharCode.r) || (mode === CharCode.i)) {
-              if (regno & 1) {
-                the_insn.error = "even address register required";
+            } else if (dst.charCodeAt(dstIndex) === CharCode.Plus) {
+              if (preinc) {
+                the_insn.error = "invalid address mode";
                 return;
               }
-              if (dst.charCodeAt(++dstIndex) != CharCode.CloseBracket) {
+              if (++dstIndex >= dst.length) {
                 the_insn.error = "missing ']'";
                 return;
               }
-              if (mode === CharCode.c) {
-                the_insn.ops[numops] = "*";
+              if (dst.charCodeAt(dstIndex) === CharCode.CloseBracket) {
+                the_insn.ops[numops] = ">";
                 if (++dstIndex < dst.length) {
                   if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
                     return;
                   }
                   break;
-                }
-              } else {
-                the_insn.ops[numops] = (mode === CharCode.r) ? "#" : "?";
-                if (++dstIndex < dst.length) {
-                  the_insn.error = "no offset allowed for this mode";
-                  return;
+                } else {
+                  break;
                 }
               }
-              break;
+              mode = dst.charCodeAt(dstIndex);
+              if ((mode === CharCode.c) || (mode === CharCode.r) || (mode === CharCode.i)) {
+                if (regno & 1) {
+                  the_insn.error = "even address register required";
+                  return;
+                }
+                if (dst.charCodeAt(++dstIndex) != CharCode.CloseBracket) {
+                  the_insn.error = "missing ']'";
+                  return;
+                }
+                if (mode === CharCode.c) {
+                  the_insn.ops[numops] = "*";
+                  if (++dstIndex < dst.length) {
+                    if (!this.get_expression(the_insn, str, dst.slice(dstIndex), ++numops)) {
+                      return;
+                    }
+                    break;
+                  }
+                } else {
+                  the_insn.ops[numops] = (mode === CharCode.r) ? "#" : "?";
+                  if (++dstIndex < dst.length) {
+                    the_insn.error = "no offset allowed for this mode";
+                    return;
+                  }
+                }
+                break;
+              } else {
+                the_insn.error = "invalid address mode";
+                return;
+              }
             } else {
               the_insn.error = "invalid address mode";
               return;
             }
-          } else {
-            the_insn.error = "invalid address mode";
-            return;
           }
         default:
           if (!this.get_expression(the_insn, str, dst, numops)) {
@@ -499,7 +502,7 @@ export default class Parser {
     if (the_insn.error) {
       return the_insn.error;
     }
-    let insn = this.find_opcode(the_insn);
+    const insn = this.find_opcode(the_insn);
     if (insn === undefined) {
       return "opcode/operand mismatch: " + oneLineAsm;
     }
@@ -537,7 +540,7 @@ export default class Parser {
       }
 
       if (isNameBeginner(c)) {
-        let startPos = this.pos - 1;
+        const startPos = this.pos - 1;
         while (isPartOfName(c = text.charCodeAt(this.pos))) { this.pos ++; }
         s = text.slice(startPos, this.pos);
 
@@ -549,7 +552,7 @@ export default class Parser {
           if (c === CharCode.Space) {
             this.pos++;
           }
-          let directiveType = directiveHash.get(s.slice(1));
+          const directiveType = directiveHash.get(s.slice(1));
           switch (directiveType) {
             case DIRECTIVE_T.IGNORE:
               this.ignoreRestOfLine();
@@ -586,7 +589,7 @@ export default class Parser {
       }
       
       if (isDecimal(c)) {
-        let startPos = this.pos - 1;
+        const startPos = this.pos - 1;
         while (isDecimal(text.charCodeAt(this.pos))) { this.pos ++; }
         if (text.charCodeAt(this.pos) === CharCode.Colon) {
           this.symbolTable.add(text.slice(startPos, this.pos));
@@ -613,7 +616,7 @@ export default class Parser {
   }
 
   getSingleSymbol() {
-    let s = this.getSymbol();
+    const s = this.getSymbol();
     this.symbolTable.add(s);
     this.ignoreRestOfLine();
   }
@@ -636,7 +639,7 @@ export default class Parser {
   }
 
   getSymbol() {
-    let startPos = this.pos;
+    const startPos = this.pos;
     while (isPartOfName(this.document.charCodeAt(this.pos))) { this.pos ++; }
     if (startPos === this.pos) {
       this.diagnosticInfos.push({ line: this.lineCounter, message: "expected symbol name" });
@@ -652,14 +655,16 @@ export function preprocess(str: string): string {
     2: After first non-white on line (keep 1 white)
     3: After second white on line (into operands) (flush white)
   */
-  let pos = 0, out = "", state = 0, end = str.length;
-
+  let pos = 0, out = "", state = 0;
+  const end = str.length;
   while (pos < end) {
-    let c = str.charCodeAt(pos);
+    const c = str.charCodeAt(pos);
     switch (c) {
       case CharCode.Space:
       case CharCode.Tab: {
-        while (++pos < end && isWhiteSpace(str.charCodeAt(pos))) {}
+        do {
+          pos++;
+        } while (pos < end && isWhiteSpace(str.charCodeAt(pos)));
         if (state === 0 || state === 2) {
           out += " ";
           state += 1;
@@ -667,23 +672,29 @@ export function preprocess(str: string): string {
         break;
       }
       case CharCode.DoubleQuote: {
-        let start = pos;
-        while (++start < end && !(str.charCodeAt(start) === CharCode.DoubleQuote && str.charCodeAt(start - 1) !== CharCode.BackSlash)) {}
+        let start = pos + 1;
+        while (start < end && !(str.charCodeAt(start) === CharCode.DoubleQuote && str.charCodeAt(start - 1) !== CharCode.BackSlash)) {
+          start++;
+        }
         // Unterminated string
         out += str.slice(pos, start + 1);
         pos = start + 1;
         break;
       }
       case CharCode.SingleQuote: {
-        let start = pos;
-        while (++start < end && !(str.charCodeAt(start) === CharCode.SingleQuote && str.charCodeAt(start - 1) !== CharCode.BackSlash)) {}
+        let start = pos + 1;
+        while (start < end && !(str.charCodeAt(start) === CharCode.SingleQuote && str.charCodeAt(start - 1) !== CharCode.BackSlash)) {
+          start++;
+        }
         // Unterminated string
         out += str.slice(pos, start + 1);
         pos = start + 1;
         break;
       }
       case CharCode.Hash: {
-        while (++pos < end && str.charCodeAt(pos) !== CharCode.LineFeed) {}
+        do {
+          pos++;
+        } while (pos < end && str.charCodeAt(pos) !== CharCode.LineFeed);
         break;
       }
       case CharCode.Slash: {
@@ -692,14 +703,16 @@ export function preprocess(str: string): string {
           return out;
         }
         
-        let ch = str.charCodeAt(pos);
+        const ch = str.charCodeAt(pos);
         if (ch === CharCode.Slash) {
-          while (++pos < end && str.charCodeAt(pos) !== CharCode.LineFeed) {}
+          do {
+            pos ++;
+          } while(pos < end && str.charCodeAt(pos) !== CharCode.LineFeed);
           break;
         }
         if (ch === CharCode.Asterisk) {
           while (++pos < end) {
-            let chr = str.charCodeAt(pos);
+            const chr = str.charCodeAt(pos);
             if (chr === CharCode.LineFeed) { out += "\n"; }
             if (
               chr === CharCode.Asterisk &&
