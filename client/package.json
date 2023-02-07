@@ -1,14 +1,10 @@
 {
   "name": "tricore-gcc-lsp",
   "description": "Tricore GCC Assembly language server",
-  "author": "Xinquan XU",
+  "author": "Schleifner",
   "license": "MIT",
-  "version": "1.0.0",
-  "publisher": "Xinquan XU",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
+  "version": "0.0.1",
+  "publisher": "Schleifner",
   "engines": {
     "vscode": "^1.63.0"
   },
